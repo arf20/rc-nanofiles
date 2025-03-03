@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 
+//import es.um.redes.boletinUDP.UDPServer;
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
 import es.um.redes.nanoFiles.udp.message.DirMessageOps;
@@ -48,8 +49,6 @@ public class DirectoryConnector {
 
 
 
-
-
 	public DirectoryConnector(String hostname) throws IOException {
 		// Guardamos el string con el nombre/IP del host
 		directoryHostname = hostname;
@@ -58,11 +57,13 @@ public class DirectoryConnector {
 		 * guardar la dirección de socket (address:DIRECTORY_PORT) del directorio en el
 		 * atributo directoryAddress, para poder enviar datagramas a dicho destino.
 		 */
+		directoryAddress = new InetSocketAddress(InetAddress.getByName(directoryHostname), DIRECTORY_PORT);
+
 		/*
 		 * TODO: (Boletín SocketsUDP) Crea el socket UDP en cualquier puerto para enviar
 		 * datagramas al directorio
 		 */
-
+		socket = new DatagramSocket();
 
 
 	}
@@ -94,6 +95,40 @@ public class DirectoryConnector {
 		 * recibir una respuesta. El array devuelto debe contener únicamente los datos
 		 * recibidos, *NO* el búfer de recepción al completo.
 		 */
+		
+		
+		DatagramPacket reqDatagram = new DatagramPacket(requestData, requestData.length, directoryAddress);
+		byte[] buf = new byte[DirMessage.PACKET_MAX_SIZE];
+		
+		boolean resOk = false;
+		int count = 0;
+		while (!resOk && count < MAX_NUMBER_OF_ATTEMPTS) {
+			try {
+				socket.send(reqDatagram);
+			} catch (IOException e) {
+				System.out.println("Datagram send error: " + e.getMessage());
+				System.exit(1);
+			}
+				
+			DatagramPacket resDatagram = new DatagramPacket(buf, buf.length);
+			
+			count++;
+			
+			try {
+				socket.setSoTimeout(TIMEOUT);
+				socket.receive(resDatagram);
+			} catch (SocketTimeoutException e) {
+				resOk = false;
+				System.out.println("Directory request retransmission");
+				continue;
+			} catch (IOException e) {
+				System.out.println("Datagram receive error: " + e.getMessage());
+				System.exit(1);
+			}
+		}
+
+		
+		
 		/*
 		 * TODO: (Boletín SocketsUDP) Una vez el envío y recepción asumiendo un canal
 		 * confiable (sin pérdidas) esté terminado y probado, debe implementarse un
@@ -135,11 +170,8 @@ public class DirectoryConnector {
 		 * comprobar que la respuesta recibida empieza por "pingok". En tal caso,
 		 * devuelve verdadero, falso si la respuesta no contiene los datos esperados.
 		 */
-		boolean success = false;
 
-
-
-		return success;
+		return (new String(sendAndReceiveDatagrams("ping".getBytes()))) == "pingok";
 	}
 
 	public String getDirectoryHostname() {
@@ -153,7 +185,6 @@ public class DirectoryConnector {
 	 * @return Verdadero si
 	 */
 	public boolean pingDirectoryRaw() {
-		boolean success = false;
 		/*
 		 * TODO: (Boletín EstructuraNanoFiles) Basándose en el código de
 		 * "testSendAndReceive", contactar con el directorio, enviándole nuestro
@@ -167,9 +198,9 @@ public class DirectoryConnector {
 		 * fracaso. 6.Devolver éxito/fracaso de la operación.
 		 */
 
-
-
-		return success;
+		String msg = "ping&" + NanoFiles.PROTOCOL_ID;
+		
+		return (new String(sendAndReceiveDatagrams(msg.getBytes()))) == "welcome";
 	}
 
 	/**
@@ -192,9 +223,11 @@ public class DirectoryConnector {
 		 * de la operación
 		 */
 
+		DirMessage msg = new DirMessage(DirMessageOps.OPERATION_PING);
+		byte[] resbytes = sendAndReceiveDatagrams(msg.toString().getBytes());
+		DirMessage res = DirMessage.fromString(resbytes.toString());
 
-
-		return success;
+		return res.getOperation() == "pingok";
 	}
 
 	/**
@@ -211,6 +244,9 @@ public class DirectoryConnector {
 
 		// TODO: Ver TODOs en pingDirectory y seguir esquema similar
 
+		DirMessage msg = new DirMessage(DirMessageOps.OPERATION_PING);
+		byte[] resbytes = sendAndReceiveDatagrams(msg.toString().getBytes());
+		DirMessage res = DirMessage.fromString(resbytes.toString());
 
 
 		return success;
