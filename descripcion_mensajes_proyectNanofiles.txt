@@ -1,0 +1,54 @@
+MENSAJES ASOCIADOS AL MENSAJE PING
+
+Mensaje "solicitud de ping"
+-------------------------
+·Operación: ping
+·Emisor:     nanofiles
+·Receptor:   directory
+·Campos adicionales: identificador del protocolo del peer.
+·Finalidad:  pedirle al directory si está activo y si coincide el ID del protocolo.
+·Condiciones de envío:   ninguna.
+·Acciones al recibirlo: el directory compara el protocolo recibido y responder en consecuencia.
+·formato:    ninguno.
+
+operation: ping\n
+protocol:<protocolId>\n
+\n
+
+·Ejemplo
+
+operation: ping\n
+protocol:123456789A\n
+
+·Nota: en realidad lo que se manda es:
+operation:ping\nprotocol:123456789A\n
+
+
+Mensaje "respuesta de ping correcto"
+-------------------------
+·Operación:  pingOk
+·Emisor:     directory
+·Receptor:   nanofiles
+·Campos adicionales: Ninguno.
+·Finalidad:  informar al peer que el directory está activo y sí coincide el ID del protocolo.
+·Condiciones de envío: se acaba de enviar un mensaje ping y se ha comprobado la compatibilidad de protocolo.
+·Acciones al recibirlo: El peer informa que el directory está a la escucha.
+·formato:    ninguno.
+
+operation: pingOk\n
+\n
+
+
+Mensaje "respuesta de ping incorrecto"
+-------------------------
+·Operación:  pingBad
+·Emisor:     directory
+·Receptor:   nanofiles
+·Campos adicionales: Ninguno.
+·Finalidad:  informar al peer que el directory está activo, pero no coincide el ID del protocolo.
+·Condiciones de envío: se acaba de enviar un mensaje ping y se ha comprobado la compatibilidad de protocolo.
+·Acciones al recibirlo: El peer informa que el directory está a la escucha.
+·formato:    ninguno.
+
+operation: pingBad\n
+\n

@@ -27,6 +27,7 @@ public class DirMessage {
 	 * todos los campos que pueden aparecer en los mensajes de este protocolo
 	 * (formato campo:valor)
 	 */
+	private static final String FIELDNAME_PROTOCOL = "protocol";
 
 
 
@@ -56,6 +57,10 @@ public class DirMessage {
 	 * (campos del mensaje)
 	 */
 
+	public DirMessage(String op, String idOfProtocol) {
+		operation = op;
+		protocolId = idOfProtocol;
+	}
 
 
 
@@ -78,9 +83,6 @@ public class DirMessage {
 	}
 
 	public String getProtocolId() {
-
-
-
 		return protocolId;
 	}
 
@@ -109,27 +111,27 @@ public class DirMessage {
 		// Local variables to save data during parsing
 		DirMessage m = null;
 
-
-
 		for (String line : lines) {
 			int idx = line.indexOf(DELIMITER); // Posición del delimitador
 			String fieldName = line.substring(0, idx).toLowerCase(); // minúsculas
 			String value = line.substring(idx + 1).trim();
 
 			switch (fieldName) {
-			case FIELDNAME_OPERATION: {
-				assert (m == null);
-				m = new DirMessage(value);
-				break;
-			}
+				case FIELDNAME_OPERATION: 
+					assert (m == null);
+					m = new DirMessage(value);
+					break;
+				case FIELDNAME_PROTOCOL:
+					m.setProtocolID(value);
+					break;
 
 
 
 
-			default:
-				System.err.println("PANIC: DirMessage.fromString - message with unknown field name " + fieldName);
-				System.err.println("Message was:\n" + message);
-				System.exit(-1);
+				default:
+					System.err.println("PANIC: DirMessage.fromString - message with unknown field name " + fieldName);
+					System.err.println("Message was:\n" + message);
+					System.exit(-1);
 			}
 		}
 
@@ -149,13 +151,17 @@ public class DirMessage {
 	public String toString() {
 
 		StringBuffer sb = new StringBuffer();
-		sb.append(FIELDNAME_OPERATION + DELIMITER + operation + END_LINE); // Construimos el campo
+		sb.append(FIELDNAME_OPERATION + DELIMITER + operation + END_LINE); // Construimos el campo linea a linea
 		/*
 		 * TODO: (Boletín MensajesASCII) En función de la operación del mensaje, crear
 		 * una cadena la operación y concatenar el resto de campos necesarios usando los
 		 * valores de los atributos del objeto.
 		 */
-
+		switch(operation) {
+			case DirMessageOps.OPERATION_PING:
+				sb.append(FIELDNAME_PROTOCOL + DELIMITER + protocolId+ END_LINE);
+				break;			
+		}
 
 
 		sb.append(END_LINE); // Marcamos el final del mensaje
