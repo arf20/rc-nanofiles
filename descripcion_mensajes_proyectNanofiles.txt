@@ -1,15 +1,16 @@
-MENSAJES ASOCIADOS AL MENSAJE PING
+MENSAJES ASOCIADOS A OPERACIÓN PING
+=========================
 
 Mensaje "solicitud de ping"
 -------------------------
-·Operación: ping
+·Operación:  ping
 ·Emisor:     nanofiles
 ·Receptor:   directory
-·Campos adicionales: identificador del protocolo del peer.
-·Finalidad:  pedirle al directory si está activo y si coincide el ID del protocolo.
-·Condiciones de envío:   ninguna.
-·Acciones al recibirlo: el directory compara el protocolo recibido y responder en consecuencia.
-·formato:    ninguno.
+·Campos adicionales: Identificador del protocolo del peer.
+·Finalidad:  Pedirle al directory si está activo y si coincide el ID del protocolo.
+·Condiciones de envío: Ninguna.
+·Acciones al recibirlo: El directory compara el protocolo recibido y responder en consecuencia.
+·formato:    Ninguno.
 
 operation: ping\n
 protocol:<protocolId>\n
@@ -30,10 +31,10 @@ Mensaje "respuesta de ping correcto"
 ·Emisor:     directory
 ·Receptor:   nanofiles
 ·Campos adicionales: Ninguno.
-·Finalidad:  informar al peer que el directory está activo y sí coincide el ID del protocolo.
-·Condiciones de envío: se acaba de enviar un mensaje ping y se ha comprobado la compatibilidad de protocolo.
-·Acciones al recibirlo: El peer informa que el directory está a la escucha.
-·formato:    ninguno.
+·Finalidad:  Informar al peer que el directory está activo y sí coincide el ID del protocolo.
+·Condiciones de envío: Se acaba de enviar un mensaje ping y se ha comprobado la compatibilidad de protocolo.
+·Acciones al recibirlo: Informar al usuario acorde de que el directorio está vivo.
+·formato:    Ninguno.
 
 operation: pingOk\n
 \n
@@ -45,10 +46,83 @@ Mensaje "respuesta de ping incorrecto"
 ·Emisor:     directory
 ·Receptor:   nanofiles
 ·Campos adicionales: Ninguno.
-·Finalidad:  informar al peer que el directory está activo, pero no coincide el ID del protocolo.
-·Condiciones de envío: se acaba de enviar un mensaje ping y se ha comprobado la compatibilidad de protocolo.
-·Acciones al recibirlo: El peer informa que el directory está a la escucha.
-·formato:    ninguno.
+·Finalidad:  Informar al peer que el directory está activo, pero no coincide el ID del protocolo.
+·Condiciones de envío: Se acaba de enviar un mensaje ping y se ha comprobado la compatibilidad de protocolo.
+·Acciones al recibirlo: Informar al usuario de que el directorio no habla el mismo protocolo que nanofiles.
+·formato:    Ninguno.
 
 operation: pingBad\n
 \n
+
+
+MENSAJES ASOCIADOS A OPERACIÓN FILELIST
+=========================
+
+Mensaje "solicitud de listado"
+-------------------------
+·Operación:  filelist
+·Emisor:     nanofiles
+·Receptor:   directory
+·Campos adicionales: Ninguno.
+·Finalidad:  Pedirle al directory la lista de archivos publicados disponibles.
+·Condiciones de envío: Ninguna.
+·Acciones al recibirlo: El directory envia filelistRes con los archivos en su base de datos.
+·formato:    Ninguno.
+
+operation: filelist\n
+\n
+
+Mensaje "respuesta de ping correcto"
+-------------------------
+·Operación:  filelistRes
+·Emisor:     directory
+·Receptor:   nanofiles
+·Campos adicionales: Lista de archivos.
+·Finalidad:  Informar al peer de los archivos publicados en el directorio disponibles para descarga.
+·Condiciones de envío: Se acaba de enviar un mensaje filelist.
+·Acciones al recibirlo: Guardarlo en la base de datos local y mostrar al usuario la lista.
+·formato:    Ninguno.
+
+operation: filelistRes\n
+<nombre de archivo>: <tamaño>; <hash>; <servidor>, <servidor>\n
+<nombre de archivo>: <tamaño>; <hash>; <servidor>, <servidor>\n
+...
+/n
+
+
+MENSAJES ASOCIADOS A OPERACIÓN SERVE
+=========================
+
+Mensaje "publicar ficheros"
+-------------------------
+·Operación:  publish
+·Emisor:     nanofiles
+·Receptor:   directory
+·Campos adicionales: Puerto efimero (opcional), lista de archivos.
+·Finalidad:  Informar al directory de los archivos disponibles servidos por este peer, tamaño y hash.
+·Condiciones de envío: Ninguna.
+·Acciones al recibirlo: El directory envia 'publishAck'.
+·formato:    Ninguno.
+
+operation: publish\n
+[port: <port>\n]
+<nombre de archivo>: <tamaño>; <hash>\n
+<nombre de archivo>: <tamaño>; <hash>\n
+...
+/n
+
+Mensaje "respuesta de publicacion de ficheros"
+-------------------------
+·Operación:  publishAck
+·Emisor:     directory
+·Receptor:   nanofiles
+·Campos adicionales: Ninguno.
+·Finalidad:  Informar al peer de que se ha recibido la lista de ficheros.
+·Condiciones de envío: Se acaba de enviar un mensaje 'publish'.
+·Acciones al recibirlo: Ninguna.
+·formato:    Ninguno.
+
+operation: publishAck\n
+/n
+
+
