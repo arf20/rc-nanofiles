@@ -72,7 +72,7 @@ Mensaje "solicitud de listado"
 operation: filelist\n
 \n
 
-Mensaje "respuesta de ping correcto"
+Mensaje "respuesta de filelist"
 -------------------------
 ·Operación:  filelistRes
 ·Emisor:     directory
