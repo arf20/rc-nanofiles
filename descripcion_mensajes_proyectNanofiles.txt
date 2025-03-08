@@ -72,7 +72,7 @@ Mensaje "solicitud de listado"
 operation: filelist\n
 \n
 
-Mensaje "respuesta de filelist"
+Mensaje "respuesta afirmativa de filelist"
 -------------------------
 ·Operación:  filelistRes
 ·Emisor:     directory
@@ -87,6 +87,20 @@ operation: filelistRes\n
 <nombre de archivo>: <tamaño>; <hash>; <servidor>, <servidor>\n
 <nombre de archivo>: <tamaño>; <hash>; <servidor>, <servidor>\n
 ...
+/n
+
+Mensaje "respuesta negativa de filelist"
+-------------------------
+·Operación:  filelistBad
+·Emisor:     directory
+·Receptor:   nanofiles
+·Campos adicionales: Ninguno.
+·Finalidad:  Informar al peer de que no hay archivos publicados en el directorio disponibles para descarga.
+·Condiciones de envío: Se acaba de enviar un mensaje filelist.
+·Acciones al recibirlo: Informar al usuario de que no hay archivos disponibles para descargar.
+·formato:    Ninguno.
+
+operation: filelistBad\n
 /n
 
 

@@ -16,7 +16,7 @@ public class NFController {
 	 * TODO: (Boletín Autómatas) Añadir más constantes que representen los estados
 	 * del autómata del cliente de directorio.
 	 */
-
+	private static final byte ONLINE = 0;
 
 
 

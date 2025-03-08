@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Created with JFLAP 6.4.--><structure>
+	<type>fa</type>
+	<automaton>
+		<!--The list of states.-->
+		<state id="0" name="q0">
+			<x>253.0</x>
+			<y>308.0</y>
+			<label>LISTENING</label>
+			<initial/>
+			<final/>
+		</state>
+		<state id="1" name="q1">
+			<x>493.0</x>
+			<y>310.0</y>
+			<label>proces_ping</label>
+		</state>
+		<state id="2" name="q2">
+			<x>357.0</x>
+			<y>472.0</y>
+			<label>proces_filelist</label>
+		</state>
+		<state id="3" name="q3">
+			<x>360.0</x>
+			<y>171.0</y>
+			<label>proces_publish</label>
+		</state>
+		<!--The list of transitions.-->
+		<transition>
+			<from>1</from>
+			<to>0</to>
+			<read>snd(pingBad)</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>2</to>
+			<read>rcv(filelist)</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>3</to>
+			<read>rcv(publish)</read>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>0</to>
+			<read>snd(pingOk)</read>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>0</to>
+			<read>snd(publishAck)</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>0</to>
+			<read>snd(filelistBad)</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>0</to>
+			<read>snd(filelist)</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>1</to>
+			<read>rcv(ping)</read>
+		</transition>
+	</automaton>
+</structure>
