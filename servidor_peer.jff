@@ -3,20 +3,15 @@
 	<automaton>
 		<!--The list of states.-->
 		<state id="0" name="q0">
-			<x>137.0</x>
-			<y>299.0</y>
+			<x>135.0</x>
+			<y>257.0</y>
 			<label>LISTENING</label>
 			<initial/>
 			<final/>
 		</state>
-		<state id="1" name="q1">
-			<x>317.0</x>
-			<y>298.0</y>
-			<label>proces_pingToPeer</label>
-		</state>
 		<state id="2" name="q2">
-			<x>202.0</x>
-			<y>140.0</y>
+			<x>330.0</x>
+			<y>253.0</y>
 			<label>proces_getChunk</label>
 		</state>
 		<!--The list of transitions.-->
@@ -26,24 +21,14 @@
 			<read>rcv(getChunk)</read>
 		</transition>
 		<transition>
-			<from>1</from>
-			<to>0</to>
-			<read>snd(pingAck)</read>
-		</transition>
-		<transition>
-			<from>2</from>
-			<to>0</to>
-			<read>snd(chunk)</read>
-		</transition>
-		<transition>
 			<from>2</from>
 			<to>0</to>
 			<read>snd(inavalid)</read>
 		</transition>
 		<transition>
-			<from>0</from>
-			<to>1</to>
-			<read>rcv(pingToPeer)</read>
+			<from>2</from>
+			<to>0</to>
+			<read>snd(chunk)</read>
 		</transition>
 	</automaton>
 </structure>

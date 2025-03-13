@@ -9,6 +9,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.concurrent.StructureViolationException;
 
 import es.um.redes.nanoFiles.util.FileInfo;
 
@@ -24,7 +26,10 @@ public class PeerMessage {
 	 * específicos para crear mensajes con otros campos, según sea necesario
 	 * 
 	 */
-
+	//Campo con la longitud en bytes del nombre de fichero en una petición de descarga.
+	private byte longFileName; 
+	//Campo con el nombre del fichero que se quiere descargar.
+	private byte[] fileName;
 
 
 
@@ -34,6 +39,12 @@ public class PeerMessage {
 
 	public PeerMessage(byte op) {
 		opcode = op;
+	}
+	
+	public PeerMessage(byte op, String fileName) {
+		opcode = op;
+		longFileName = (byte) fileName.length();
+		this.fileName = fileName.getBytes();
 	}
 
 	/*
@@ -45,8 +56,20 @@ public class PeerMessage {
 	public byte getOpcode() {
 		return opcode;
 	}
-
-
+	
+	public byte[] getFileName() {
+		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) {
+			throw new StructureViolationException("This instance does not support getFileName. Check \'getOpcode() == PeerMessageOps.OPCODE_FILEREQUEST\' first");
+		}
+		return Arrays.copyOf(fileName, longFileName);
+	}
+	
+	public byte getLongFileName () {
+		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) {
+			throw new StructureViolationException("This instance does not support getLongFileName. Check \'getOpcode() == PeerMessageOps.OPCODE_FILEREQUEST\' first");
+		}
+		return longFileName;
+	}
 
 
 

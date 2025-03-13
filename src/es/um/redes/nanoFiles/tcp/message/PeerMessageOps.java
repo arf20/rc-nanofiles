@@ -12,8 +12,9 @@ public class PeerMessageOps {
 	 * los diferentes tipos de mensajes del protocolo de comunicación con un par
 	 * servidor de ficheros (valores posibles del campo "operation").
 	 */
-
-
+	
+	public static final byte OPCODE_FILEREQUEST = 2;
+	public static final byte OPCODE_INVALID_FILENAME = 1;
 
 
 	/*
@@ -21,12 +22,12 @@ public class PeerMessageOps {
 	 * mensajes definidos anteriormente, añadirlos al array "valid_opcodes" y añadir
 	 * su representación textual a "valid_operations_str" EN EL MISMO ORDEN.
 	 */
-	private static final Byte[] _valid_opcodes = { OPCODE_INVALID_CODE,
+	private static final Byte[] _valid_opcodes = { OPCODE_INVALID_CODE, OPCODE_INVALID_FILENAME
 
 
 
 	};
-	private static final String[] _valid_operations_str = { "INVALID_OPCODE",
+	private static final String[] _valid_operations_str = { "INVALID_OPCODE", "INVALID_FILENAME"
 
 
 
