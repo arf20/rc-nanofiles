@@ -14,7 +14,7 @@ public class PeerMessageOps {
 	 */
 	
 	public static final byte OPCODE_FILEREQUEST = 2;
-	public static final byte OPCODE_INVALID_FILENAME = 1;
+	public static final byte OPCODE_FILE_NOT_FOUND = 1;
 
 
 	/*
@@ -22,7 +22,7 @@ public class PeerMessageOps {
 	 * mensajes definidos anteriormente, añadirlos al array "valid_opcodes" y añadir
 	 * su representación textual a "valid_operations_str" EN EL MISMO ORDEN.
 	 */
-	private static final Byte[] _valid_opcodes = { OPCODE_INVALID_CODE, OPCODE_INVALID_FILENAME
+	private static final Byte[] _valid_opcodes = { OPCODE_INVALID_CODE, OPCODE_FILE_NOT_FOUND
 
 
 

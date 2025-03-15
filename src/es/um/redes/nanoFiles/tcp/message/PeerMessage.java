@@ -43,8 +43,8 @@ public class PeerMessage {
 	
 	public PeerMessage(byte op, String fileName) {
 		opcode = op;
-		longFileName = (byte) fileName.length();
 		this.fileName = fileName.getBytes();
+		longFileName = (byte) this.fileName.length;
 	}
 
 	/*
@@ -65,12 +65,22 @@ public class PeerMessage {
 	}
 	
 	public byte getLongFileName () {
-		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) {
+		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST)
 			throw new StructureViolationException("This instance does not support getLongFileName. Check \'getOpcode() == PeerMessageOps.OPCODE_FILEREQUEST\' first");
-		}
 		return longFileName;
 	}
+	
+	private void setFileName(byte[] newName) {
+		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) 
+			throw new StructureViolationException("This instance does not have the field fileName");
+		fileName = newName;
+	}
 
+	private void setLongFileName(byte size) {
+		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) 
+			throw new StructureViolationException("This instance does not have the field longFileName");
+		longFileName = size;
+	}
 
 
 	/**
@@ -94,6 +104,13 @@ public class PeerMessage {
 		PeerMessage message = new PeerMessage();
 		byte opcode = dis.readByte();
 		switch (opcode) {
+			case PeerMessageOps.OPCODE_FILEREQUEST:
+				message.opcode = opcode;
+				message.setLongFileName(dis.readByte());
+				byte[] nameBytes = new byte[message.getLongFileName()];
+				dis.readFully(nameBytes);
+				message.setFileName(nameBytes);
+				break;
 
 
 
@@ -110,14 +127,17 @@ public class PeerMessage {
 		 * TODO (Boletín MensajesBinarios): Escribir los bytes en los que se codifica el
 		 * mensaje en el socket a través del "dos", teniendo en cuenta opcode del
 		 * mensaje del que se trata y los campos relevantes en cada caso. NOTA: Usar
-		 * dos.write para leer un array de bytes, dos.writeInt para escribir un entero,
+		 * dos.write para escribir un array de bytes, dos.writeInt para escribir un entero,
 		 * etc.
 		 */
 
 		dos.writeByte(opcode);
 		switch (opcode) {
-
-
+			case PeerMessageOps.OPCODE_FILEREQUEST:
+				dos.writeByte(longFileName);
+				dos.write(fileName);
+				break;
+			
 
 
 		default:

@@ -51,6 +51,11 @@
 		</state>
 		<!--The list of transitions.-->
 		<transition>
+			<from>7</from>
+			<to>8</to>
+			<read>timeout</read>
+		</transition>
+		<transition>
 			<from>2</from>
 			<to>0</to>
 			<read>rcv(pingBad)</read>
@@ -61,16 +66,34 @@
 			<read>snd(ping)</read>
 		</transition>
 		<transition>
-			<from>1</from>
+			<from>3</from>
+			<to>2</to>
+			<read>snd(ping)</read>
+		</transition>
+		<transition>
+			<from>5</from>
+			<to>6</to>
+			<read>timeout</read>
+		</transition>
+		<transition>
+			<from>6</from>
 			<to>5</to>
-			<controlx>568</controlx>
-			<controly>137</controly>
 			<read>snd(filelist)</read>
 		</transition>
 		<transition>
-			<from>1</from>
+			<from>2</from>
+			<to>3</to>
+			<read>timeout</read>
+		</transition>
+		<transition>
+			<from>0</from>
 			<to>4</to>
 			<read>quit_command</read>
+		</transition>
+		<transition>
+			<from>8</from>
+			<to>7</to>
+			<read>snd(publish)</read>
 		</transition>
 		<transition>
 			<from>2</from>
@@ -79,20 +102,8 @@
 		</transition>
 		<transition>
 			<from>7</from>
-			<to>8</to>
-			<read>timeout</read>
-		</transition>
-		<transition>
-			<from>3</from>
-			<to>2</to>
-			<read>snd(ping)</read>
-		</transition>
-		<transition>
-			<from>6</from>
-			<to>3</to>
-			<controlx>584</controlx>
-			<controly>-43</controly>
-			<read>timeout_n</read>
+			<to>1</to>
+			<read>rcv(publishAck)</read>
 		</transition>
 		<transition>
 			<from>5</from>
@@ -110,46 +121,21 @@
 			<read>timeout_n</read>
 		</transition>
 		<transition>
-			<from>8</from>
-			<to>3</to>
-			<controlx>631</controlx>
-			<controly>-84</controly>
-			<read>timeout_n</read>
-		</transition>
-		<transition>
-			<from>7</from>
-			<to>1</to>
-			<read>rcv(publishAck)</read>
-		</transition>
-		<transition>
-			<from>0</from>
+			<from>1</from>
 			<to>4</to>
 			<read>quit_command</read>
 		</transition>
 		<transition>
-			<from>8</from>
-			<to>7</to>
-			<read>snd(publish)</read>
-		</transition>
-		<transition>
-			<from>2</from>
-			<to>3</to>
-			<read>timeout</read>
+			<from>1</from>
+			<to>5</to>
+			<controlx>568</controlx>
+			<controly>137</controly>
+			<read>snd(filelist)</read>
 		</transition>
 		<transition>
 			<from>1</from>
 			<to>7</to>
 			<read>snd(publish)</read>
-		</transition>
-		<transition>
-			<from>6</from>
-			<to>5</to>
-			<read>snd(filelist)</read>
-		</transition>
-		<transition>
-			<from>5</from>
-			<to>6</to>
-			<read>timeout</read>
 		</transition>
 	</automaton>
 </structure>

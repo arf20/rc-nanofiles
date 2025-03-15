@@ -19,8 +19,8 @@ public class PeerMessageTest {
 		 * writeMessageToOutputStream para comprobar que readMessageFromInputStream
 		 * construye un mensaje idéntico al original.
 		 */
-		PeerMessage msgOut = new PeerMessage();
-		msgOut.writeMessageToOutputStream(fos);
+		PeerMessage msgOut = new PeerMessage(PeerMessageOps.OPCODE_FILEREQUEST, "El fichero en cuestion.doc");
+		msgOut.writeMessageToOutputStream(fos);		
 
 		DataInputStream fis = new DataInputStream(new FileInputStream(nombreArchivo));
 		PeerMessage msgIn = PeerMessage.readMessageFromInputStream((DataInputStream) fis);
@@ -30,6 +30,12 @@ public class PeerMessageTest {
 		 */
 		if (msgOut.getOpcode() != msgIn.getOpcode()) {
 			System.err.println("Opcode does not match!");
+		}
+		if (msgOut.getLongFileName() != msgIn.getLongFileName()) {
+			System.err.println("LongFileName does not match!");
+		}
+		if (msgOut.getFileName().equals(msgIn.getFileName())) {
+			System.err.println("FileName does not match!");
 		}
 	}
 

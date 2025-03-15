@@ -148,7 +148,7 @@ MENSAJES ASOCIADOS A OPERACIÓN DownloadFile
 	*opCode:	Un byte que indica en codigo la acción ejecutada.
 	*longFileName: 	Un byte que indica el tamaño en bytes del campo fileName.
 	*fileName:	número variable de bytes que codifican el nombre del fichero a descargar. 
-·Finalidad:	Solicitar al peer servidor la descarga de un ficero.
+·Finalidad:	Solicitar al peer servidor la descarga de un fichero.
 ·Condiciones de envío:	ninguna.
 ·Acciones al recibirlo:	verificar la existencia del fichero solicitado y enviar respuesta en consecuencia.
 ·formato:	Longitud valor.
