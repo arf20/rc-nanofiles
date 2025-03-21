@@ -8,8 +8,8 @@
 			<label>DOWNLOADING</label>
 		</state>
 		<state id="1" name="q4">
-			<x>195.0</x>
-			<y>284.0</y>
+			<x>168.0</x>
+			<y>241.0</y>
 			<label>FINISHED</label>
 			<final/>
 		</state>
@@ -25,8 +25,8 @@
 			<label>wait_chunk</label>
 		</state>
 		<state id="4" name="q1">
-			<x>216.0</x>
-			<y>-83.0</y>
+			<x>214.0</x>
+			<y>-63.0</y>
 			<label>wait_accepted</label>
 		</state>
 		<state id="5" name="q5">
@@ -36,14 +36,9 @@
 		</state>
 		<!--The list of transitions.-->
 		<transition>
-			<from>2</from>
-			<to>1</to>
-			<read>quit_command</read>
-		</transition>
-		<transition>
-			<from>3</from>
-			<to>5</to>
-			<read>rcv(badChunkRequestError)</read>
+			<from>5</from>
+			<to>2</to>
+			<read>snd(stopDownload)</read>
 		</transition>
 		<transition>
 			<from>0</from>
@@ -51,29 +46,34 @@
 			<read>snd(chunkRequest)</read>
 		</transition>
 		<transition>
-			<from>2</from>
-			<to>4</to>
-			<read>snd(fileRequest)</read>
-		</transition>
-		<transition>
 			<from>3</from>
 			<to>0</to>
 			<read>rcv(chunk)</read>
 		</transition>
 		<transition>
-			<from>5</from>
-			<to>2</to>
-			<read>snd(stopDownload)</read>
+			<from>3</from>
+			<to>5</to>
+			<read>rcv(badChunkRequestError)</read>
 		</transition>
 		<transition>
-			<from>4</from>
-			<to>0</to>
-			<read>rcv(accepted)</read>
+			<from>2</from>
+			<to>4</to>
+			<read>snd(fileRequest)</read>
 		</transition>
 		<transition>
 			<from>4</from>
 			<to>2</to>
 			<read>rcv(badChunkRequestError)</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>1</to>
+			<read>quit_command</read>
+		</transition>
+		<transition>
+			<from>4</from>
+			<to>0</to>
+			<read>rcv(accepted)</read>
 		</transition>
 		<transition>
 			<from>0</from>
