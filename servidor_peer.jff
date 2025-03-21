@@ -3,30 +3,30 @@
 	<automaton>
 		<!--The list of states.-->
 		<state id="0" name="q0">
-			<x>159.0</x>
-			<y>253.0</y>
+			<x>58.0</x>
+			<y>229.0</y>
 			<label>LISTENING</label>
 			<initial/>
 			<final/>
 		</state>
 		<state id="1" name="q2">
-			<x>509.0</x>
-			<y>257.0</y>
+			<x>349.0</x>
+			<y>224.0</y>
 			<label>SERVING</label>
 		</state>
 		<state id="2" name="q1">
-			<x>331.0</x>
-			<y>346.0</y>
+			<x>209.0</x>
+			<y>38.0</y>
 			<label>process_fileRequest</label>
 		</state>
 		<state id="3" name="q3">
-			<x>706.0</x>
-			<y>260.0</y>
+			<x>629.0</x>
+			<y>223.0</y>
 			<label>process_chunk</label>
 		</state>
 		<state id="4" name="q4">
-			<x>315.0</x>
-			<y>109.0</y>
+			<x>204.0</x>
+			<y>324.0</y>
 			<label>FINISHED</label>
 			<final/>
 		</state>
@@ -34,14 +34,19 @@
 		<transition>
 			<from>1</from>
 			<to>0</to>
-			<controlx>322</controlx>
-			<controly>194</controly>
+			<controlx>201</controlx>
+			<controly>239</controly>
 			<read>rcv(stopDownload)</read>
 		</transition>
 		<transition>
-			<from>0</from>
-			<to>4</to>
-			<read>quit_command</read>
+			<from>3</from>
+			<to>1</to>
+			<read>snd(badChunkRequestError)</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>1</to>
+			<read>snd(accepted)</read>
 		</transition>
 		<transition>
 			<from>0</from>
@@ -50,23 +55,23 @@
 		</transition>
 		<transition>
 			<from>2</from>
-			<to>1</to>
-			<read>snd(accepted)</read>
-		</transition>
-		<transition>
-			<from>2</from>
 			<to>0</to>
-			<read>snd(fileNotFound)</read>
-		</transition>
-		<transition>
-			<from>3</from>
-			<to>1</to>
-			<read>snd(chunkServed)</read>
+			<read>snd(badChunkRequestError)</read>
 		</transition>
 		<transition>
 			<from>1</from>
 			<to>3</to>
-			<read>rcv(getChunk)</read>
+			<read>rcv(chunkRequest)</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>4</to>
+			<read>quit_command</read>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>1</to>
+			<read>snd(chunk)</read>
 		</transition>
 	</automaton>
 </structure>

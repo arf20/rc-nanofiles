@@ -3,43 +3,66 @@
 	<automaton>
 		<!--The list of states.-->
 		<state id="0" name="q2">
-			<x>440.0</x>
-			<y>329.0</y>
+			<x>370.0</x>
+			<y>106.0</y>
 			<label>DOWNLOADING</label>
 		</state>
 		<state id="1" name="q4">
-			<x>284.0</x>
-			<y>486.0</y>
+			<x>195.0</x>
+			<y>284.0</y>
 			<label>FINISHED</label>
 			<final/>
 		</state>
 		<state id="2" name="q0">
-			<x>124.0</x>
-			<y>328.0</y>
+			<x>54.0</x>
+			<y>105.0</y>
 			<label>ONLINE</label>
 			<initial/>
 		</state>
 		<state id="3" name="q3">
-			<x>647.0</x>
-			<y>330.0</y>
+			<x>598.0</x>
+			<y>102.0</y>
 			<label>wait_chunk</label>
 		</state>
 		<state id="4" name="q1">
-			<x>283.0</x>
-			<y>202.0</y>
+			<x>216.0</x>
+			<y>-83.0</y>
 			<label>wait_accepted</label>
+		</state>
+		<state id="5" name="q5">
+			<x>367.0</x>
+			<y>210.0</y>
+			<label>download_failed</label>
 		</state>
 		<!--The list of transitions.-->
 		<transition>
-			<from>0</from>
-			<to>3</to>
-			<read>snd(getChunk)</read>
+			<from>2</from>
+			<to>1</to>
+			<read>quit_command</read>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>5</to>
+			<read>rcv(badChunkRequestError)</read>
 		</transition>
 		<transition>
 			<from>0</from>
+			<to>3</to>
+			<read>snd(chunkRequest)</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>4</to>
+			<read>snd(fileRequest)</read>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>0</to>
+			<read>rcv(chunk)</read>
+		</transition>
+		<transition>
+			<from>5</from>
 			<to>2</to>
-			<controlx>274</controlx>
-			<controly>403</controly>
 			<read>snd(stopDownload)</read>
 		</transition>
 		<transition>
@@ -48,24 +71,16 @@
 			<read>rcv(accepted)</read>
 		</transition>
 		<transition>
-			<from>2</from>
-			<to>4</to>
-			<read>snd(fileRequest)</read>
-		</transition>
-		<transition>
-			<from>2</from>
-			<to>1</to>
-			<read>quit_command</read>
-		</transition>
-		<transition>
 			<from>4</from>
 			<to>2</to>
-			<read>rcv(fileNotFound)</read>
+			<read>rcv(badChunkRequestError)</read>
 		</transition>
 		<transition>
-			<from>3</from>
-			<to>0</to>
-			<read>rcv(chunkServed)</read>
+			<from>0</from>
+			<to>2</to>
+			<controlx>209</controlx>
+			<controly>112</controly>
+			<read>snd(stopDownload)</read>
 		</transition>
 	</automaton>
 </structure>
