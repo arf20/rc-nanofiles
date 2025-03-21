@@ -246,18 +246,18 @@ Data chunk of file
 
 #### Client automaton
 
-![](img/directory_client.jpg)
+![](img/cliente_directorio.jpg)
 
 #### Server automaton
 
-![](img/directory_server.jpg)
+![](img/directorio_cliente.jpg)
 
 ### Peer protocol
 
 #### Client automaton
 
-![](img/peer_client.jpg)
+![](img/cliente_peer.jpg)
 
 #### Server automaton
 
-![](img/peer_server.jpg)
+![](./img/servidor_peer.jpg)
