@@ -1,7 +1,9 @@
 package es.um.redes.nanoFiles.udp.message;
 
-
-
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.StructureViolationException;
 
 /**
  * Clase que modela los mensajes del protocolo de comunicación entre pares para
@@ -27,7 +29,8 @@ public class DirMessage {
 	 * todos los campos que pueden aparecer en los mensajes de este protocolo
 	 * (formato campo:valor)
 	 */
-	private static final String FIELDNAME_PROTOCOL = "protocol";
+	private static final String FIELDNAME_PROTOCOL = "protocol";	
+	private static final String FIELDNAME_FILE = "file";
 
 
 
@@ -43,12 +46,13 @@ public class DirMessage {
 	 * TODO: (Boletín MensajesASCII) Crear un atributo correspondiente a cada uno de
 	 * los campos de los diferentes mensajes de este protocolo.
 	 */
-
+	private LinkedList<String> files;	//atributo para guadar los ficheros de fileList reply
 
 
 
 	public DirMessage(String op) {
 		operation = op;
+		files = new LinkedList<String>();
 	}
 
 	/*
@@ -83,7 +87,27 @@ public class DirMessage {
 	}
 
 	public String getProtocolId() {
+		if(!operation.equals(DirMessageOps.OPERATION_PING)) {
+			throw new StructureViolationException(
+					"getProtocolId: this message doesn't have the protocol's Id. Check \'getOperation() == DirMessageOps.OPERATION_PING\' first ");
+		}
 		return protocolId;
+	}
+	
+	public List<String> getFiles(){
+		if(!operation.equals(DirMessageOps.OPERATION_FILELIST_RES)) {
+			throw new StructureViolationException(
+					"getFiles: this message is not able to contain files. Check \'getOperation() == DirMessageOps.OPERATION_FILELIST_RES\' first ");
+		}
+		return Collections.unmodifiableList(this.files);
+	}
+	
+	public void setFile(String newFile) {
+		if(!operation.equals(DirMessageOps.OPERATION_FILELIST_RES)) {
+			throw new StructureViolationException(
+					"getFiles: this message is not able to contain files. Check \'getOperation() == DirMessageOps.OPERATION_FILELIST_RES\' first ");
+		}
+		files.add(newFile);
 	}
 
 
@@ -124,6 +148,9 @@ public class DirMessage {
 				case FIELDNAME_PROTOCOL:
 					m.setProtocolID(value);
 					break;
+				case FIELDNAME_FILE:
+					m.setFile(value);
+					break;
 
 
 
@@ -160,7 +187,10 @@ public class DirMessage {
 		switch(operation) {
 			case DirMessageOps.OPERATION_PING:
 				sb.append(FIELDNAME_PROTOCOL + DELIMITER + protocolId+ END_LINE);
-				break;			
+				break;
+			case DirMessageOps.OPERATION_FILELIST_RES:
+				files.forEach(file-> sb.append(FIELDNAME_FILE + DELIMITER + file + END_LINE));
+
 		}
 
 

@@ -30,9 +30,9 @@ public class NFDirectoryServer {
 	 * funcionalidad del sistema nanoFilesP2P: ficheros publicados, servidores
 	 * registrados, etc.
 	 */
+	private LinkedList<FileInfo> database;
 
-
-
+	
 
 	/**
 	 * Probabilidad de descartar un mensaje recibido en el directorio (para simular
@@ -58,7 +58,7 @@ public class NFDirectoryServer {
 		 * TODO: (Boletín SocketsUDP) Inicializar atributos que mantienen el estado del
 		 * servidor de directorio: ficheros, etc.)
 		 */
-
+		database = new LinkedList<FileInfo>();
 
 
 		if (NanoFiles.testModeUDP) {
@@ -254,6 +254,13 @@ public class NFDirectoryServer {
 			else {
 				msgToSend = new DirMessage(DirMessageOps.OPERATION_PING_BAD);
 				System.out.println("Sending: "+ DirMessageOps.OPERATION_PING_BAD + "...");
+			}
+			break;
+		}
+		case DirMessageOps.OPERATION_FILELIST:{
+			msgToSend = new DirMessage(DirMessageOps.OPERATION_FILELIST_RES);
+			for(var file : database) {
+				msgToSend.setFile(file.fileHash + ";" + file.fileName + ";" + file.fileSize + "\n");
 			}
 			break;
 		}

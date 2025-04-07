@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
+import java.util.List;
 
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
@@ -284,11 +285,26 @@ public class DirectoryConnector {
 	 *         pudo satisfacer nuestra solicitud
 	 */
 	public FileInfo[] getFileList() {
-		FileInfo[] filelist = new FileInfo[0];
+		FileInfo[] filelist = null;
 		// TODO: Ver TODOs en pingDirectory y seguir esquema similar
-
-
-
+		//--------------
+		// HECHO
+		DirMessage fileRequestMsg = new DirMessage(DirMessageOps.OPERATION_FILELIST);
+		byte[] requestData = fileRequestMsg.toString().getBytes();
+		byte[] responseData = sendAndReceiveDatagrams(requestData);
+		if (responseData != null) {
+			DirMessage MessageWithFiles = DirMessage.fromString(new String(responseData, 0, responseData.length));
+			List<String> files = MessageWithFiles.getFiles();
+			filelist = new FileInfo[files.size()];
+			int cont = 0;
+			for(var act : files) {
+				String[] fileData = act.split(";");
+				filelist[cont] = new FileInfo(fileData[0], fileData[2], Integer.parseInt(fileData[2]), "");
+				cont++;
+			}
+		} else {
+			filelist = new FileInfo[0];
+		}
 		return filelist;
 	}
 

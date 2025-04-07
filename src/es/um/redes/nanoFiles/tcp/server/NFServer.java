@@ -1,6 +1,7 @@
 package es.um.redes.nanoFiles.tcp.server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -20,13 +21,13 @@ public class NFServer implements Runnable {
 		 * TODO: (Boletín SocketsTCP) Crear una direción de socket a partir del puerto
 		 * especificado (PORT)
 		 */
+		InetSocketAddress serverSocketAddress = new InetSocketAddress(PORT);
 		/*
 		 * TODO: (Boletín SocketsTCP) Crear un socket servidor y ligarlo a la dirección
 		 * de socket anterior
 		 */
-
-
-
+		serverSocket = new ServerSocket();
+		serverSocket.bind(serverSocketAddress);
 	}
 
 	/**
@@ -50,6 +51,14 @@ public class NFServer implements Runnable {
 			 * TODO: (Boletín SocketsTCP) Usar el socket servidor para esperar conexiones de
 			 * otros peers que soliciten descargar ficheros.
 			 */
+			/*boolean connectionOk = false;
+			Socket socket = null;
+			try {
+				socket = serverSocket.accept();
+				// FALTA COMPLETAR...
+			} finally { // BORRAR FINALLY
+				
+			}*/
 			/*
 			 * TODO: (Boletín SocketsTCP) Tras aceptar la conexión con un peer cliente, la
 			 * comunicación con dicho cliente para servir los ficheros solicitados se debe

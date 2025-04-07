@@ -105,8 +105,8 @@ Send back list of known (filename, hash, size and peers) for every file known
 
 ```
 operation: filelistres
-<hash1>: <filename1>; <size1>; <server1a>, <server1b> [...]
-<hash2>: <filename2>; <size2>; <server2a>, <server2b> [...]
+[file: <hash1>; <filename1>; <size1>; <server1a>, <server1b> [...]]
+[file: <hash2>; <filename2>; <size2>; <server2a>, <server2b> [...]]
 [...]
 
 ```
