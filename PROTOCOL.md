@@ -136,8 +136,8 @@ Send back known peers that serve the file
  
 ```
 operation: peerlistres
-peer: <hostname1>
-peer: <hostname2>
+peer: <hostname1[:port]>
+peer: <hostname2[:port]>
 
 ```
 

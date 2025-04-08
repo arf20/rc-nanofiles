@@ -6,9 +6,14 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import es.um.redes.nanoFiles.application.NanoFiles;
+import es.um.redes.nanoFiles.tcp.server.NFServer;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
 import es.um.redes.nanoFiles.udp.message.DirMessageOps;
 import es.um.redes.nanoFiles.util.FileInfo;
@@ -111,6 +116,7 @@ public class DirectoryConnector {
 				socket.close();
 				System.exit(-2);
 			}
+			
 			try {
 				socket.setSoTimeout(TIMEOUT);		//se inicia temporizador.	
 				socket.receive(packetFromServer);
@@ -243,12 +249,12 @@ public class DirectoryConnector {
 		 * HECHO
 		 */
 		DirMessage messagePing = new DirMessage(DirMessageOps.OPERATION_PING, NanoFiles.PROTOCOL_ID);
-		String pingText= messagePing.toString();
+		String pingText = messagePing.toString();
 		byte[] ping = pingText.getBytes();
-		byte[] pingResponce = sendAndReceiveDatagrams(ping);
-		if(pingResponce!=null) {
-			DirMessage responceMessage= DirMessage.fromString(new String(pingResponce, 0, pingResponce.length));	//cración de un objeto DirMessage con la respuesta del Directory.
-			if (responceMessage.getOperation().equals(DirMessageOps.OPERATION_PING_OK)) {	//se comprueba si la respuesta es la esperada.
+		byte[] pingResponse = sendAndReceiveDatagrams(ping);
+		if (pingResponse != null) {
+			DirMessage responseMessage = DirMessage.fromString(new String(pingResponse, 0, pingResponse.length));	//cración de un objeto DirMessage con la respuesta del Directory.
+			if (responseMessage.getOperation().equals(DirMessageOps.OPERATION_PING_OK)) {	//se comprueba si la respuesta es la esperada.
 				success = true;
 			}
 		}
@@ -266,13 +272,17 @@ public class DirectoryConnector {
 	 *         y acepta la lista de ficheros, falso en caso contrario.
 	 */
 	public boolean registerFileServer(int serverPort, FileInfo[] files) {
-		boolean success = false;
+		Set<FileInfo> fileset = Set.copyOf(Arrays.asList(files));
+		DirMessage publishMessage = new DirMessage(DirMessageOps.OPERATION_PUBLISH, (short)serverPort, fileset);
+		byte[] publishResponse = sendAndReceiveDatagrams(publishMessage.toString().getBytes());
+		if (publishResponse == null)
+			return false;
+		
+		DirMessage publishack = DirMessage.fromString(new String(publishResponse));
+		if (publishack.getOperation() != DirMessageOps.OPERATION_PUBLISH_RES)
+			return false;
 
-		// TODO: Ver TODOs en pingDirectory y seguir esquema similar
-
-
-
-		return success;
+		return true;
 	}
 
 	/**
@@ -285,27 +295,16 @@ public class DirectoryConnector {
 	 *         pudo satisfacer nuestra solicitud
 	 */
 	public FileInfo[] getFileList() {
-		FileInfo[] filelist = null;
 		// TODO: Ver TODOs en pingDirectory y seguir esquema similar
 		//--------------
 		// HECHO
-		DirMessage fileRequestMsg = new DirMessage(DirMessageOps.OPERATION_FILELIST);
-		byte[] requestData = fileRequestMsg.toString().getBytes();
-		byte[] responseData = sendAndReceiveDatagrams(requestData);
-		if (responseData != null) {
-			DirMessage MessageWithFiles = DirMessage.fromString(new String(responseData, 0, responseData.length));
-			List<String> files = MessageWithFiles.getFiles();
-			filelist = new FileInfo[files.size()];
-			int cont = 0;
-			for(var act : files) {
-				String[] fileData = act.split(";");
-				filelist[cont] = new FileInfo(fileData[0], fileData[2], Integer.parseInt(fileData[2]), "");
-				cont++;
-			}
-		} else {
-			filelist = new FileInfo[0];
-		}
-		return filelist;
+		DirMessage filelistRequest = new DirMessage(DirMessageOps.OPERATION_FILELIST);
+		byte[] responseData = sendAndReceiveDatagrams(filelistRequest.toString().getBytes());
+		if (responseData == null)
+			return new FileInfo[0];
+		
+		DirMessage filelistResponse = DirMessage.fromString(new String(responseData, 0, responseData.length));
+		return filelistResponse.getFiles().toArray(new FileInfo[0]);
 	}
 
 	/**
@@ -320,11 +319,31 @@ public class DirectoryConnector {
 	 */
 	public InetSocketAddress[] getServersSharingThisFile(String filenameSubstring) {
 		// TODO: Ver TODOs en pingDirectory y seguir esquema similar
-		InetSocketAddress[] serversList = new InetSocketAddress[0];
+		DirMessage peerlistRequest = new DirMessage(DirMessageOps.OPERATION_PEERLIST);
+		byte[] responseData = sendAndReceiveDatagrams(peerlistRequest.toString().getBytes());
+		if (responseData == null)
+			return new InetSocketAddress[0];
+		
+		DirMessage peerlistResponse = DirMessage.fromString(new String(responseData, 0, responseData.length));
+		if (peerlistResponse.getOperation() != DirMessageOps.OPERATION_PEERLIST_RES)
+			return new InetSocketAddress[0];
+		
+		HashSet<InetSocketAddress> peerSet = new HashSet<InetSocketAddress>();
+		for (var peer : peerlistResponse.getPeers()) {
+			String[] peerfields = peer.split(":");
+			InetAddress addr = null;
+			try {
+				addr = InetAddress.getByName(peerfields[0]);
+			} catch (UnknownHostException e) {
+				continue;
+			}
+			short port = NFServer.PORT;
+			if (peerfields.length == 2)
+				port = Short.parseShort(peerfields[1]);
+			peerSet.add(new InetSocketAddress(addr, port));
+		}
 
-
-
-		return serversList;
+		return peerSet.toArray(new InetSocketAddress[0]);
 	}
 
 	/**
@@ -334,15 +353,16 @@ public class DirectoryConnector {
 	 *         y ha dado de baja sus ficheros.
 	 */
 	public boolean unregisterFileServer() {
-		boolean success = false;
+		// empty files
+		DirMessage publishMessage = new DirMessage(DirMessageOps.OPERATION_PUBLISH, (short)0, new HashSet<FileInfo>());
+		byte[] publishResponse = sendAndReceiveDatagrams(publishMessage.toString().getBytes());
+		if (publishResponse == null)
+			return false;
+		
+		DirMessage publishack = DirMessage.fromString(new String(publishResponse));
+		if (publishack.getOperation() != DirMessageOps.OPERATION_PUBLISH_RES)
+			return false;
 
-
-
-
-		return success;
+		return true;
 	}
-
-
-
-
 }

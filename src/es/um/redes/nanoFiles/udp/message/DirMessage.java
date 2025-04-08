@@ -72,6 +72,12 @@ public class DirMessage {
 		this.protocolId = protocolId;
 	}
 	
+	public DirMessage(String op, short port, Set<FileInfo> publishfiles) {
+		operation = op;
+		this.port = port;
+		files = new HashSet<FileInfo>(publishfiles);
+	}
+	
 	public String getOperation() {
 		return operation;
 	}
