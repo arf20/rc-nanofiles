@@ -10,12 +10,12 @@ public class DirMessageOps {
 	public static final String OPERATION_INVALID = "invalid_operation";
 	
 	public static final String OPERATION_PING = "ping";
-	public static final String OPERATION_PING_OK = "pingOk";
-	public static final String OPERATION_PING_BAD = "pingBad";
-	public static final String OPERATION_FILELIST = "fileList";
-	public static final String OPERATION_FILELIST_RES = "fileListRes";
-
-
-
-
+	public static final String OPERATION_PING_OK = "pingok";
+	public static final String OPERATION_PING_BAD = "pingbad";
+	public static final String OPERATION_FILELIST = "filelist";
+	public static final String OPERATION_FILELIST_RES = "filelistres";
+	public static final String OPERATION_PEERLIST = "peerlist";
+	public static final String OPERATION_PEERLIST_RES = "peerlistres";
+	public static final String OPERATION_PUBLISH = "publish";
+	public static final String OPERATION_PUBLISHOK = "publishok";
 }

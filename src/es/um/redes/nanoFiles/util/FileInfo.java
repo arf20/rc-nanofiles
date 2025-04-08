@@ -49,6 +49,18 @@ public class FileInfo {
 			System.out.println(file);
 		}
 	}
+	
+	public String getHash() {
+		return fileHash;
+	}
+	
+	public String getName() {
+		return fileName;
+	}
+	
+	public long getSize() {
+		return fileSize;
+	}
 
 	/**
 	 * Scans the given directory and returns an array of FileInfo objects, one for

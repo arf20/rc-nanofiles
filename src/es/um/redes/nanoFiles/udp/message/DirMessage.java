@@ -1,9 +1,13 @@
 package es.um.redes.nanoFiles.udp.message;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.StructureViolationException;
+
+import es.um.redes.nanoFiles.util.FileInfo;
 
 /**
  * Clase que modela los mensajes del protocolo de comunicación entre pares para
@@ -31,8 +35,9 @@ public class DirMessage {
 	 */
 	private static final String FIELDNAME_PROTOCOL = "protocol";	
 	private static final String FIELDNAME_FILE = "file";
-
-
+	private static final String FIELDNAME_REQFILE = "reqfile";
+	private static final String FIELDNAME_PORT = "port";
+	private static final String FIELDNAME_PEER = "peer";
 
 	/**
 	 * Tipo del mensaje, de entre los tipos definidos en PeerMessageOps.
@@ -46,13 +51,14 @@ public class DirMessage {
 	 * TODO: (Boletín MensajesASCII) Crear un atributo correspondiente a cada uno de
 	 * los campos de los diferentes mensajes de este protocolo.
 	 */
-	private LinkedList<String> files;	//atributo para guadar los ficheros de fileList reply
-
-
+	private HashSet<FileInfo> files;	//atributo para guadar los ficheros de filelist reply
+	private String reqfile;
+	private short port;
+	private HashSet<String> peers;
 
 	public DirMessage(String op) {
 		operation = op;
-		files = new LinkedList<String>();
+		files = new HashSet<FileInfo>();
 	}
 
 	/*
@@ -61,13 +67,11 @@ public class DirMessage {
 	 * (campos del mensaje)
 	 */
 
-	public DirMessage(String op, String idOfProtocol) {
+	public DirMessage(String op, String protocolId) {
 		operation = op;
-		protocolId = idOfProtocol;
+		this.protocolId = protocolId;
 	}
-
-
-
+	
 	public String getOperation() {
 		return operation;
 	}
@@ -94,23 +98,69 @@ public class DirMessage {
 		return protocolId;
 	}
 	
-	public List<String> getFiles(){
-		if(!operation.equals(DirMessageOps.OPERATION_FILELIST_RES)) {
+	public Set<FileInfo> getFiles() {
+		if(!operation.equals(DirMessageOps.OPERATION_FILELIST_RES) && !operation.equals(DirMessageOps.OPERATION_PUBLISH)) {
 			throw new StructureViolationException(
 					"getFiles: this message is not able to contain files. Check \'getOperation() == DirMessageOps.OPERATION_FILELIST_RES\' first ");
 		}
-		return Collections.unmodifiableList(this.files);
+		return Collections.unmodifiableSet(this.files);
 	}
 	
-	public void setFile(String newFile) {
+	public void insertFile(FileInfo newFile) {
 		if(!operation.equals(DirMessageOps.OPERATION_FILELIST_RES)) {
 			throw new StructureViolationException(
-					"getFiles: this message is not able to contain files. Check \'getOperation() == DirMessageOps.OPERATION_FILELIST_RES\' first ");
+					"insertFile: this message is not able to contain files. Check \'getOperation() == DirMessageOps.OPERATION_FILELIST_RES\' first ");
 		}
 		files.add(newFile);
 	}
 
-
+	public String getReqFile() {
+		if(!operation.equals(DirMessageOps.OPERATION_PEERLIST)) {
+			throw new StructureViolationException(
+					"getReqFile: this message is not able to contain reqfile. Check \'getOperation() == DirMessageOps.OPERATION_PEERLIST\' first ");
+		}
+		return this.reqfile;
+	}
+	
+	public void setReqFile(String reqfile) {
+		if(!operation.equals(DirMessageOps.OPERATION_PEERLIST)) {
+			throw new StructureViolationException(
+					"setReqFile: this message is not able to contain reqfile. Check \'getOperation() == DirMessageOps.OPERATION_PEERLIST\' first ");
+		}
+		this.reqfile = reqfile;
+	}
+	
+	public short getPort() {
+		if(!operation.equals(DirMessageOps.OPERATION_PUBLISH)) {
+			throw new StructureViolationException(
+					"getPort: this message is not able to contain reqfile. Check \'getOperation() == DirMessageOps.OPERATION_PUBLISH\' first ");
+		}
+		return this.port;
+	}
+	
+	public void setPort(short port) {
+		if(!operation.equals(DirMessageOps.OPERATION_PUBLISH)) {
+			throw new StructureViolationException(
+					"setPort: this message is not able to contain reqfile. Check \'getOperation() == DirMessageOps.OPERATION_PUBLISH\' first ");
+		}
+		this.port = port;
+	}
+	
+	public Set<String> getPeers() {
+		if(!operation.equals(DirMessageOps.OPERATION_PEERLIST_RES)) {
+			throw new StructureViolationException(
+					"getPeers: this message is not able to contain reqfile. Check \'getOperation() == DirMessageOps.OPERATION_PEERLIST_RES\' first ");
+		}
+		return Collections.unmodifiableSet(this.peers);
+	}
+	
+	public void insertPeer(String peer) {
+		if(!operation.equals(DirMessageOps.OPERATION_PEERLIST_RES)) {
+			throw new StructureViolationException(
+					"insertPeer: this message is not able to contain reqfile. Check \'getOperation() == DirMessageOps.OPERATION_PEERLIST_RES\' first ");
+		}
+		peers.add(peer);
+	}
 
 
 	/**
@@ -148,22 +198,25 @@ public class DirMessage {
 				case FIELDNAME_PROTOCOL:
 					m.setProtocolID(value);
 					break;
-				case FIELDNAME_FILE:
-					m.setFile(value);
+				case FIELDNAME_REQFILE:
+					m.setReqFile(value);
 					break;
-
-
-
-
+				case FIELDNAME_FILE:
+					String[] filefields = value.split(";");
+					// fix maybe path
+					m.insertFile(new FileInfo(filefields[0].trim(), filefields[1].trim(), Integer.parseInt(filefields[2].trim()), filefields[1].trim()));
+					break;
+				case FIELDNAME_PORT:
+					m.setPort(Short.parseShort(value));
+				case FIELDNAME_PEER:
+					m.insertPeer(value);
+					break;
 				default:
 					System.err.println("PANIC: DirMessage.fromString - message with unknown field name " + fieldName);
 					System.err.println("Message was:\n" + message);
 					System.exit(-1);
 			}
 		}
-
-
-
 
 		return m;
 	}
@@ -176,7 +229,6 @@ public class DirMessage {
 	 * @return La cadena de caracteres con el mensaje a enviar por el socket.
 	 */
 	public String toString() {
-
 		StringBuffer sb = new StringBuffer();
 		sb.append(FIELDNAME_OPERATION + DELIMITER + operation + END_LINE); // Construimos el campo linea a linea
 		/*
@@ -186,13 +238,24 @@ public class DirMessage {
 		 */
 		switch(operation) {
 			case DirMessageOps.OPERATION_PING:
-				sb.append(FIELDNAME_PROTOCOL + DELIMITER + protocolId+ END_LINE);
+				sb.append(FIELDNAME_PROTOCOL + DELIMITER + protocolId + END_LINE);
 				break;
 			case DirMessageOps.OPERATION_FILELIST_RES:
-				files.forEach(file-> sb.append(FIELDNAME_FILE + DELIMITER + file + END_LINE));
-
+				files.forEach(file -> sb.append(FIELDNAME_FILE + DELIMITER + " " + file.getHash() + "; " + file.getName() + "; " + file.getSize() + END_LINE));
+				break;
+			case DirMessageOps.OPERATION_PUBLISH:
+				if (port != 0)
+					sb.append(FIELDNAME_PORT + DELIMITER + " " + port + END_LINE);
+				files.forEach(file -> sb.append(FIELDNAME_FILE + DELIMITER + " " + file.getHash() + "; " + file.getName() + "; " + file.getSize() + END_LINE));
+				break;
+			case DirMessageOps.OPERATION_PEERLIST:
+				sb.append(FIELDNAME_FILE + DELIMITER + " " + reqfile + END_LINE);
+				break;
+			case DirMessageOps.OPERATION_PEERLIST_RES:
+				peers.forEach(peer -> sb.append(FIELDNAME_PEER + DELIMITER + " " + peer + END_LINE));
+				break;
+			
 		}
-
 
 		sb.append(END_LINE); // Marcamos el final del mensaje
 		return sb.toString();
