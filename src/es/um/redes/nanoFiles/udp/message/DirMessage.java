@@ -72,6 +72,14 @@ public class DirMessage {
 		this.protocolId = protocolId;
 	}
 	
+	public DirMessage(String op, Set<? extends Object> argumentSet) {
+		operation = op;
+		if (op.equals(DirMessageOps.OPERATION_FILELIST_RES))
+			this.files = new HashSet<FileInfo>((Set<FileInfo>)argumentSet);
+		else if (op.equals(DirMessageOps.OPERATION_PEERLIST_RES))
+			this.peers = new HashSet<String>((Set<String>)argumentSet);
+	}
+	
 	public DirMessage(String op, short port, Set<FileInfo> publishfiles) {
 		operation = op;
 		this.port = port;

@@ -141,6 +141,19 @@ peer: <hostname2[:port]>
 
 ```
 
+#### Peerlist bad reply
+
+The hash in `reqfile` is of any file known by directory
+
+ - Operation `peerlistbad`
+ - Fields: None
+ - Answer to 'peerlist request'
+ 
+```
+operation: peerlistbad
+
+```
+
 #### Publish reply
 
 Acknowledge publish request
