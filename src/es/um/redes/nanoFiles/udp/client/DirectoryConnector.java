@@ -275,12 +275,16 @@ public class DirectoryConnector {
 		Set<FileInfo> fileset = Set.copyOf(Arrays.asList(files));
 		DirMessage publishMessage = new DirMessage(DirMessageOps.OPERATION_PUBLISH, (short)serverPort, fileset);
 		byte[] publishResponse = sendAndReceiveDatagrams(publishMessage.toString().getBytes());
-		if (publishResponse == null)
+		if (publishResponse == null) {
+			System.out.println("No response");
 			return false;
+		}
 		
 		DirMessage publishack = DirMessage.fromString(new String(publishResponse));
-		if (publishack.getOperation() != DirMessageOps.OPERATION_PUBLISH_RES)
+		if (!publishack.getOperation().equals(DirMessageOps.OPERATION_PUBLISH_RES)) {
+			System.out.println("Bad response: " + publishack.getOperation());
 			return false;
+		}
 
 		return true;
 	}

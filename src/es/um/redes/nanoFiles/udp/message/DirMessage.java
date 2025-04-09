@@ -121,7 +121,7 @@ public class DirMessage {
 	}
 	
 	public void insertFile(FileInfo newFile) {
-		if(!operation.equals(DirMessageOps.OPERATION_FILELIST_RES)) {
+		if(!operation.equals(DirMessageOps.OPERATION_FILELIST_RES) && !operation.equals(DirMessageOps.OPERATION_PUBLISH)) {
 			throw new StructureViolationException(
 					"insertFile: this message is not able to contain files. Check \'getOperation() == DirMessageOps.OPERATION_FILELIST_RES\' first ");
 		}
@@ -217,6 +217,10 @@ public class DirMessage {
 					break;
 				case FIELDNAME_FILE:
 					String[] filefields = value.split(";");
+					if (filefields.length != 3) {
+						System.err.println("Malformed file field: \"" + value + "\"");
+						break;
+					}
 					// fix maybe path
 					m.insertFile(new FileInfo(filefields[0].trim(), filefields[1].trim(), Integer.parseInt(filefields[2].trim()), filefields[1].trim()));
 					break;
@@ -244,7 +248,7 @@ public class DirMessage {
 	 */
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		sb.append(FIELDNAME_OPERATION + DELIMITER + operation + END_LINE); // Construimos el campo linea a linea
+		sb.append(FIELDNAME_OPERATION + DELIMITER + " " + operation + END_LINE); // Construimos el campo linea a linea
 		/*
 		 * TODO: (Boletín MensajesASCII) En función de la operación del mensaje, crear
 		 * una cadena la operación y concatenar el resto de campos necesarios usando los
@@ -252,7 +256,7 @@ public class DirMessage {
 		 */
 		switch(operation) {
 			case DirMessageOps.OPERATION_PING:
-				sb.append(FIELDNAME_PROTOCOL + DELIMITER + protocolId + END_LINE);
+				sb.append(FIELDNAME_PROTOCOL + DELIMITER + " " + protocolId + END_LINE);
 				break;
 			case DirMessageOps.OPERATION_FILELIST_RES:
 				files.forEach(file -> sb.append(FIELDNAME_FILE + DELIMITER + " " + file.getHash() + "; " + file.getName() + "; " + file.getSize() + END_LINE));

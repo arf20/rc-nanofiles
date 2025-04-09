@@ -52,7 +52,7 @@ public class NFControllerLogicP2P {
 			 * 
 			 */
 
-
+			serverRunning = true;
 
 		}
 		return serverRunning;

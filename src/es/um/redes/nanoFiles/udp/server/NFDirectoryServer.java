@@ -31,7 +31,7 @@ public class NFDirectoryServer {
 	 * funcionalidad del sistema nanoFilesP2P: ficheros publicados, servidores
 	 * registrados, etc.
 	 */
-	private HashSet<FileInfo> database;
+	private HashMap<String, FileInfo> database;
 	private HashMap<InetSocketAddress, HashSet<FileInfo>> peers;
 
 	/**
@@ -58,7 +58,8 @@ public class NFDirectoryServer {
 		 * TODO: (Boletín SocketsUDP) Inicializar atributos que mantienen el estado del
 		 * servidor de directorio: ficheros, etc.)
 		 */
-		database = new HashSet<FileInfo>();
+		database = new HashMap<>();
+		peers = new HashMap<>();
 		
 
 
@@ -178,14 +179,11 @@ public class NFDirectoryServer {
 	}
 
 	public void run() throws IOException {
-
 		System.out.println("Directory starting...");
 
 		while (true) { // Bucle principal del servidor de directorio
 			DatagramPacket rcvDatagram = receiveDatagram();
-
 			sendResponse(rcvDatagram);
-
 		}
 	}
 
@@ -232,7 +230,7 @@ public class NFDirectoryServer {
 			 * ---------
 			 * HECHO
 			 */
-			if (clientMessage.getProtocolId().equals(NanoFiles.PROTOCOL_ID)) {
+			if (clientMessage.getProtocolId() != null && clientMessage.getProtocolId().equals(NanoFiles.PROTOCOL_ID)) {
 			/*
 			 * TODO: (Boletín MensajesASCII) Construimos un mensaje de respuesta que indique
 			 * el éxito/fracaso del ping (compatible, incompatible), y lo devolvemos como
@@ -256,7 +254,7 @@ public class NFDirectoryServer {
 			}
 		} break;
 		case DirMessageOps.OPERATION_FILELIST: {
-			msgToSend = new DirMessage(DirMessageOps.OPERATION_FILELIST_RES, new HashSet<FileInfo>(database));
+			msgToSend = new DirMessage(DirMessageOps.OPERATION_FILELIST_RES, new HashSet<FileInfo>(database.values()));
 		} break;
 
 		case DirMessageOps.OPERATION_PUBLISH: {
@@ -264,30 +262,27 @@ public class NFDirectoryServer {
 			if (files.isEmpty()) {
 				peers.remove(clientAddr);
 			} else {
-				database.addAll(files);
+				files.forEach(file -> database.put(file.getHash(), file));
 				peers.put(clientAddr, new HashSet<FileInfo>(files));
 			}
 
 			msgToSend = new DirMessage(DirMessageOps.OPERATION_PUBLISH_RES);
+			System.out.println("Sending: "+ DirMessageOps.OPERATION_PUBLISH_RES + "...");
 		} break;
 		case DirMessageOps.OPERATION_PEERLIST: {
 			var reqFileHash = clientMessage.getReqFile();
 			
 			if (!reqFileHash.matches("^[a-fA-F0-9]{40}$")) {
+				System.err.println("Bad hash: \"" + reqFileHash + "\"");
 				msgToSend = new DirMessage(DirMessageOps.OPERATION_PEERLIST_BAD);
+				System.out.println("Sending: "+ DirMessageOps.OPERATION_PEERLIST_BAD + "...");
 				break;
 			}
 			
-			boolean found = false;
-			for (var fi : database) {
-				if (fi.getHash().equals(reqFileHash)) {
-					found = true;
-					break;
-				}
-			}
-			
-			if (!found) {
+			if (!database.containsKey(reqFileHash)) {
+				System.err.println("Hash not found in database: \"" + reqFileHash + "\"");
 				msgToSend = new DirMessage(DirMessageOps.OPERATION_PEERLIST_BAD);
+				System.out.println("Sending: "+ DirMessageOps.OPERATION_PEERLIST_BAD + "...");
 				break;
 			}
 			
@@ -301,10 +296,11 @@ public class NFDirectoryServer {
 			}
 			
 			msgToSend = new DirMessage(DirMessageOps.OPERATION_PEERLIST_RES, filePeers);
+			System.out.println("Sending: "+ DirMessageOps.OPERATION_PEERLIST_RES + "...");
 		} break;
 		default:
 			System.err.println("Unexpected message operation: \"" + operation + "\"");
-			System.exit(-1);
+			// System.exit(-1); // nice denial of service there, let me comment that for you
 		}
 
 		/*
@@ -317,8 +313,5 @@ public class NFDirectoryServer {
 		byte[] dataToSend = msgToSend.toString().getBytes();	// Se transforma el mensaje a String y de String a bytes.
 		responceToClient = new DatagramPacket(dataToSend, dataToSend.length, clientAddr);
 		socket.send(responceToClient);
-		
-
-
 	}
 }
