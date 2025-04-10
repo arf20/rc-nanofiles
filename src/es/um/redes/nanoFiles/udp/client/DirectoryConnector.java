@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -323,8 +324,27 @@ public class DirectoryConnector {
 	 */
 	public InetSocketAddress[] getServersSharingThisFile(String filenameSubstring) {
 		// TODO: Ver TODOs en pingDirectory y seguir esquema similar
-		DirMessage peerlistRequest = new DirMessage(DirMessageOps.OPERATION_PEERLIST);
-		byte[] responseData = sendAndReceiveDatagrams(peerlistRequest.toString().getBytes());
+		DirMessage filelistRequest = new DirMessage(DirMessageOps.OPERATION_FILELIST);
+		byte[] responseData = sendAndReceiveDatagrams(filelistRequest.toString().getBytes());
+		if (responseData == null)
+			return new InetSocketAddress[0];
+		
+		ArrayList<String> matches = new ArrayList<String>();
+		DirMessage filelistResponse = DirMessage.fromString(new String(responseData));
+		for (var file : filelistResponse.getFiles()) {
+			if (file.getName().contains(filenameSubstring)) {
+				matches.add(file.getHash());
+			}
+		}
+		
+		if (matches.size() > 1) {
+			System.out.println("subcadena ambigua");
+			return new InetSocketAddress[0];
+		}
+		
+		
+		DirMessage peerlistRequest = new DirMessage(DirMessageOps.OPERATION_PEERLIST, matches.get(0));
+		responseData = sendAndReceiveDatagrams(peerlistRequest.toString().getBytes());
 		if (responseData == null)
 			return new InetSocketAddress[0];
 		

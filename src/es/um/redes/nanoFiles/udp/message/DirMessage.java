@@ -58,7 +58,8 @@ public class DirMessage {
 
 	public DirMessage(String op) {
 		operation = op;
-		files = new HashSet<FileInfo>();
+		files = new HashSet<>();
+		peers = new HashSet<>();
 	}
 
 	/*
@@ -67,9 +68,13 @@ public class DirMessage {
 	 * (campos del mensaje)
 	 */
 
-	public DirMessage(String op, String protocolId) {
+	public DirMessage(String op, String arg) {
 		operation = op;
-		this.protocolId = protocolId;
+		if (op.equals(DirMessageOps.OPERATION_PING))
+			this.protocolId = arg;
+		else if (op.equals(DirMessageOps.OPERATION_PEERLIST)) {
+			this.reqfile = arg;
+		}
 	}
 	
 	public DirMessage(String op, Set<? extends Object> argumentSet) {
@@ -267,7 +272,7 @@ public class DirMessage {
 				files.forEach(file -> sb.append(FIELDNAME_FILE + DELIMITER + " " + file.getHash() + "; " + file.getName() + "; " + file.getSize() + END_LINE));
 				break;
 			case DirMessageOps.OPERATION_PEERLIST:
-				sb.append(FIELDNAME_FILE + DELIMITER + " " + reqfile + END_LINE);
+				sb.append(FIELDNAME_REQFILE + DELIMITER + " " + reqfile + END_LINE);
 				break;
 			case DirMessageOps.OPERATION_PEERLIST_RES:
 				peers.forEach(peer -> sb.append(FIELDNAME_PEER + DELIMITER + " " + peer + END_LINE));
