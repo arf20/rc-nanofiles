@@ -1,8 +1,18 @@
 package es.um.redes.nanoFiles.logic;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Set;
+import java.io.File;
 import java.io.IOException;
 import es.um.redes.nanoFiles.tcp.client.NFConnector;
+import es.um.redes.nanoFiles.tcp.message.PeerMessage;
+import es.um.redes.nanoFiles.tcp.message.PeerMessageOps;
 import es.um.redes.nanoFiles.application.NanoFiles;
 
 
@@ -18,6 +28,8 @@ public class NFControllerLogicP2P {
 	private NFServer fileServer = null;
 	private Thread serverThread = null;
 
+	public final long MAX_BUFF_SIZE = 2097175L; // max chunk + header
+	
 	protected NFControllerLogicP2P() {
 		
 	}
@@ -121,10 +133,9 @@ public class NFControllerLogicP2P {
 	 * @param localFileName           Nombre con el que se guardará el fichero
 	 *                                descargado
 	 */
-	protected boolean downloadFileFromServers(InetSocketAddress[] serverAddressList, String targetFileNameSubstring,
-			String localFileName) {
-		boolean downloaded = false;
-
+	protected boolean downloadFileFromServers(InetSocketAddress[] serverAddressList, String targetFileHash,
+		String localFileName)
+	{
 		if (serverAddressList.length == 0) {
 			System.err.println("* Cannot start download - No list of server addresses provided");
 			return false;
@@ -144,11 +155,77 @@ public class NFControllerLogicP2P {
 		 * método. Si se produce una excepción de entrada/salida (error del que no es
 		 * posible recuperarse), se debe informar sin abortar el programa
 		 */
+		
+		File file = new File(localFileName);
+		if (file.exists()) {
+			System.out.println("File exists - not downloading");
+			return false;
+		}
+
+		ArrayList<NFConnector> connectors = new ArrayList<NFConnector>(serverAddressList.length);
+		for (int i = 0; i < serverAddressList.length; i++) {
+			try {
+				 NFConnector nfc = new NFConnector(serverAddressList[i]);
+				 connectors.add(nfc);
+			} catch (IOException e) {
+				System.out.println("Could not contact peer" + serverAddressList[i]);
+			}
+		}
+		
+		PeerMessage filereqMessage = new PeerMessage(PeerMessageOps.OPCODE_FILEREQUEST, targetFileHash);
+		
+		for (var c : connectors) {
+			try {
+				c.sendMessage(filereqMessage);
+			} catch (IOException e) {
+				System.out.println("Client died: " + c);
+				connectors.remove(c);
+			}
+		}
+		
+		Selector selector = null;
+		try {
+			selector = Selector.open();
+			for (var c : connectors) {
+				c.registerSocket(selector);
+			}
+		} catch (IOException e) {
+			System.out.println("Error creating selector");
+			return false;
+		}
+		
+		final ByteBuffer buff = new ByteBuffer(MAX_BUFF_SIZE);
+		
+		while (true) {
+			try {
+				selector.select();
+			} catch (IOException e) {
+				System.out.println("Error selecting socket");
+				return false;
+			}
+			
+			Set<SelectionKey> selectedKeys = selector.selectedKeys();
+			Iterator<SelectionKey> iter = selectedKeys.iterator();
+            while (iter.hasNext()) {
+                SelectionKey key = iter.next();
+
+                if (!key.isReadable())
+                	continue;
+                
+                SocketChannel sc = (SocketChannel)key.channel();
+                
+                PeerMessage peerMessage = new PeerMessage();
+                PeerMessage.readMessageFromInputStream(sc.);
+                
+                iter.remove();
+            }
+		}
+		
+		
+		
 
 
-
-
-		return downloaded;
+		return true;
 	}
 
 	/**

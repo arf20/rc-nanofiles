@@ -182,6 +182,10 @@ public class NFControllerLogicDir {
 		}
 		return result;
 	}
+	
+	public String getFilenameHash(String filenameSubstring) {
+		return directoryConnector.getFilenameHash(filenameSubstring);
+	}
 
 	protected String getDirectoryHostname() {
 		return directoryConnector.getDirectoryHostname();

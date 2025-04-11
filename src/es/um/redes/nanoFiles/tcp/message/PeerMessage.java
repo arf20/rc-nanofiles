@@ -109,7 +109,7 @@ public class PeerMessage {
 	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
 	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
 	    }
-	    return new String(hexChars);
+	    return new String(hexChars).toLowerCase();
 	}
 	
 	/**
@@ -169,6 +169,11 @@ public class PeerMessage {
 				dos.writeInt(size);
 				dos.write(chunkData);
 			} break;
+			case PeerMessageOps.OPCODE_STOP:
+			case PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED:
+			case PeerMessageOps.OPCODE_FILE_NOT_FOUND:
+			case PeerMessageOps.OPCODE_CHUNKREQUEST_OUTOFRANGE:
+				break;
 		default:
 			System.err.println("PeerMessage.writeMessageToOutputStream found unexpected message opcode " + opcode);
 		}

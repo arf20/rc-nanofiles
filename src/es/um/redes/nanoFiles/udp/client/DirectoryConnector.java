@@ -322,29 +322,9 @@ public class DirectoryConnector {
 	 *         directorio el fichero indicado. Si no hay ningún servidor, devuelve
 	 *         una lista vacía.
 	 */
-	public InetSocketAddress[] getServersSharingThisFile(String filenameSubstring) {
-		// TODO: Ver TODOs en pingDirectory y seguir esquema similar
-		DirMessage filelistRequest = new DirMessage(DirMessageOps.OPERATION_FILELIST);
-		byte[] responseData = sendAndReceiveDatagrams(filelistRequest.toString().getBytes());
-		if (responseData == null)
-			return new InetSocketAddress[0];
-		
-		ArrayList<String> matches = new ArrayList<String>();
-		DirMessage filelistResponse = DirMessage.fromString(new String(responseData));
-		for (var file : filelistResponse.getFiles()) {
-			if (file.getName().contains(filenameSubstring)) {
-				matches.add(file.getHash());
-			}
-		}
-		
-		if (matches.size() > 1) {
-			System.out.println("subcadena ambigua");
-			return new InetSocketAddress[0];
-		}
-		
-		
-		DirMessage peerlistRequest = new DirMessage(DirMessageOps.OPERATION_PEERLIST, matches.get(0));
-		responseData = sendAndReceiveDatagrams(peerlistRequest.toString().getBytes());
+	public InetSocketAddress[] getServersSharingThisFile(String fileHash) {
+		DirMessage peerlistRequest = new DirMessage(DirMessageOps.OPERATION_PEERLIST, fileHash);
+		byte[] responseData = sendAndReceiveDatagrams(peerlistRequest.toString().getBytes());
 		if (responseData == null)
 			return new InetSocketAddress[0];
 		
@@ -388,5 +368,27 @@ public class DirectoryConnector {
 			return false;
 
 		return true;
+	}
+	
+	public String getFilenameHash(String filenameSubstring) {
+		DirMessage filelistRequest = new DirMessage(DirMessageOps.OPERATION_FILELIST);
+		byte[] responseData = sendAndReceiveDatagrams(filelistRequest.toString().getBytes());
+		if (responseData == null)
+			return null;
+		
+		ArrayList<String> matches = new ArrayList<String>();
+		DirMessage filelistResponse = DirMessage.fromString(new String(responseData));
+		for (var file : filelistResponse.getFiles()) {
+			if (file.getName().contains(filenameSubstring)) {
+				matches.add(file.getHash());
+			}
+		}
+		
+		if (matches.size() > 1) {
+			System.out.println("subcadena ambigua");
+			return null;
+		}
+		
+		return matches.get(0);
 	}
 }

@@ -148,13 +148,16 @@ public class NFController {
 			 * con dicho nombre, pedir al controllerPeer que descargue el fichero indicado
 			 * de los servidores obtenidos, y lo guarde con el nombre indicado en
 			 * downloadLocalFileName (2º argumento)
+			 * 
+			 * arf20: modificado para no repetir requests al directorio. no puedo permitir eso.
 			 */
 			if (NanoFiles.testModeTCP) {
 				controllerPeer.testTCPClient();
 			} else {
+				String fileHash = controllerDir.getFilenameHash(targetFilenameSubstring);
 				InetSocketAddress[] serverAddressList = controllerDir
-						.getServerAddressesSharingThisFile(targetFilenameSubstring);
-				commandSucceeded = controllerPeer.downloadFileFromServers(serverAddressList, targetFilenameSubstring,
+						.getServerAddressesSharingThisFile(fileHash);
+				commandSucceeded = controllerPeer.downloadFileFromServers(serverAddressList, fileHash,
 						downloadLocalFileName);
 			}
 			break;

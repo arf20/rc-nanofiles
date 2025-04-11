@@ -31,10 +31,13 @@ public class PeerMessageTest {
 		if (msgOut.getOpcode() != msgIn.getOpcode()) {
 			System.err.println("Opcode does not match!");
 		}
-		if (msgOut.getLongFileName() != msgIn.getLongFileName()) {
+		if (msgOut.getReqFileHash() != msgIn.getReqFileHash()) {
 			System.err.println("LongFileName does not match!");
 		}
-		if (msgOut.getFileName().equals(msgIn.getFileName())) {
+		if (msgOut.getOffset() == msgIn.getOffset()) {
+			System.err.println("FileName does not match!");
+		}
+		if (msgOut.getSize() == msgIn.getSize()) {
 			System.err.println("FileName does not match!");
 		}
 	}
