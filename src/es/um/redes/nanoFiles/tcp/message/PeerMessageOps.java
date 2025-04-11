@@ -13,8 +13,14 @@ public class PeerMessageOps {
 	 * servidor de ficheros (valores posibles del campo "operation").
 	 */
 	
-	public static final byte OPCODE_FILEREQUEST = 2;
-	public static final byte OPCODE_FILE_NOT_FOUND = 1;
+	public static final byte OPCODE_FILEREQUEST = 0x01;
+	public static final byte OPCODE_CHUNKREQUEST = 0x02;
+	public static final byte OPCODE_STOP = 0x03;
+	
+	public static final byte OPCODE_FILEREQUEST_ACCEPTED = 0x11;
+	public static final byte OPCODE_FILE_NOT_FOUND = 0x12;
+	public static final byte OPCODE_CHUNK = 0x13;
+	public static final byte OPCODE_CHUNKREQUEST_OUTOFRANGE = 0x14;
 
 
 	/*
@@ -22,15 +28,26 @@ public class PeerMessageOps {
 	 * mensajes definidos anteriormente, añadirlos al array "valid_opcodes" y añadir
 	 * su representación textual a "valid_operations_str" EN EL MISMO ORDEN.
 	 */
-	private static final Byte[] _valid_opcodes = { OPCODE_INVALID_CODE, OPCODE_FILE_NOT_FOUND
-
-
-
+	private static final Byte[] _valid_opcodes = {
+		OPCODE_INVALID_CODE,
+		OPCODE_FILEREQUEST,
+		OPCODE_CHUNKREQUEST,
+		OPCODE_STOP,
+		OPCODE_FILEREQUEST_ACCEPTED,
+		OPCODE_FILE_NOT_FOUND,
+		OPCODE_CHUNK,
+		OPCODE_CHUNKREQUEST_OUTOFRANGE
 	};
-	private static final String[] _valid_operations_str = { "INVALID_OPCODE", "INVALID_FILENAME"
-
-
-
+	
+	private static final String[] _valid_operations_str = {
+		"INVALID_CODE",
+		"FILEREQUEST",
+		"CHUNKREQUEST",
+		"STOP",
+		"FILEREQUEST_ACCEPTED",
+		"FILE_NOT_FOUND",
+		"CHUNK",
+		"CHUNKREQUEST_OUTOFRANGE"
 	};
 
 	private static Map<String, Byte> _operation_to_opcode;

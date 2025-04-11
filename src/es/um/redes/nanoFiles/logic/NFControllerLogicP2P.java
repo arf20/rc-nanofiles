@@ -16,11 +16,10 @@ public class NFControllerLogicP2P {
 	 * de este peer
 	 */
 	private NFServer fileServer = null;
-
-
-
+	private Thread serverThread = null;
 
 	protected NFControllerLogicP2P() {
+		
 	}
 
 	/**
@@ -32,31 +31,37 @@ public class NFControllerLogicP2P {
 	 * 
 	 */
 	protected boolean startFileServer() {
-		boolean serverRunning = false;
 		/*
 		 * Comprobar que no existe ya un objeto NFServer previamente creado, en cuyo
 		 * caso el servidor ya está en marcha.
 		 */
 		if (fileServer != null) {
 			System.err.println("File server is already running");
-		} else {
-
-			/*
-			 * TODO: (Boletín Servidor TCP concurrente) Arrancar servidor en segundo plano
-			 * creando un nuevo hilo, comprobar que el servidor está escuchando en un puerto
-			 * válido (>0), imprimir mensaje informando sobre el puerto de escucha, y
-			 * devolver verdadero. Las excepciones que puedan lanzarse deben ser capturadas
-			 * y tratadas en este método. Si se produce una excepción de entrada/salida
-			 * (error del que no es posible recuperarse), se debe informar sin abortar el
-			 * programa
-			 * 
-			 */
-
-			serverRunning = true;
-
+			return true;
 		}
-		return serverRunning;
 
+
+		/*
+		 * TODO: (Boletín Servidor TCP concurrente) Arrancar servidor en segundo plano
+		 * creando un nuevo hilo, comprobar que el servidor está escuchando en un puerto
+		 * válido (>0), imprimir mensaje informando sobre el puerto de escucha, y
+		 * devolver verdadero. Las excepciones que puedan lanzarse deben ser capturadas
+		 * y tratadas en este método. Si se produce una excepción de entrada/salida
+		 * (error del que no es posible recuperarse), se debe informar sin abortar el
+		 * programa
+		 * 
+		 */
+		try {
+			fileServer = new NFServer();
+		} catch (IOException e) {
+			System.out.println("Unable to bind socket");
+			return false;
+		}
+
+		serverThread = new Thread(fileServer);
+		serverThread.start();
+			
+		return true;
 	}
 
 	protected void testTCPServer() {

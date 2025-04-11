@@ -183,17 +183,20 @@ Requests availability of file to be downloaded
 
  - Opcode: 0x01
  - Fields: 
-   - fnamelen[1]: Filename length
-   - filename[fnamelen]: Filename
+   - hash[20]: Filename's hash
  - Answer: 'accepted' or 'file not found error'
 
 ```
-0        1         byte
-+--------+--------+
-| opcode |fnamelen|
-+-----------------+
-| filename        |
-| ...             |
+0        1        3        4        5		  byte
++--------+
+| opcode |
++-------------------------------------------+
+| hash                                      |
+|                                           |
+|                                           |
+|                                           |
++-------------------------------------------+
+
 ```
 
 #### Chunk request
@@ -249,7 +252,7 @@ File is available to download via chunk requests
 +--------+
 ```
 
-#### Bad chunk request error
+#### Bad file request error
 
 File is unavailable or not found
 
@@ -281,6 +284,21 @@ Data chunk of file
 +--------+------------------------------+
 | data ...
 |
+```
+
+#### Bad chunk request error
+
+File is unavailable or not found
+
+ - Opcode: 0x14
+ - Fields: None
+ - Answer to: 'chunk request'
+
+```
+0               
++--------+
+| opcode |
++--------+
 ```
 
 ## Application automaton

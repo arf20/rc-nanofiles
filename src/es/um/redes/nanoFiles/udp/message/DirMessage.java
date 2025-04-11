@@ -53,13 +53,15 @@ public class DirMessage {
 	 */
 	private HashSet<FileInfo> files;	//atributo para guadar los ficheros de filelist reply
 	private String reqfile;
-	private short port;
+	private int port;
 	private HashSet<String> peers;
 
 	public DirMessage(String op) {
 		operation = op;
 		files = new HashSet<>();
 		peers = new HashSet<>();
+		reqfile = null;
+		port = 0;
 	}
 
 	/*
@@ -149,7 +151,7 @@ public class DirMessage {
 		this.reqfile = reqfile;
 	}
 	
-	public short getPort() {
+	public int getPort() {
 		if(!operation.equals(DirMessageOps.OPERATION_PUBLISH)) {
 			throw new StructureViolationException(
 					"getPort: this message is not able to contain reqfile. Check \'getOperation() == DirMessageOps.OPERATION_PUBLISH\' first ");
@@ -157,7 +159,7 @@ public class DirMessage {
 		return this.port;
 	}
 	
-	public void setPort(short port) {
+	public void setPort(int port) {
 		if(!operation.equals(DirMessageOps.OPERATION_PUBLISH)) {
 			throw new StructureViolationException(
 					"setPort: this message is not able to contain reqfile. Check \'getOperation() == DirMessageOps.OPERATION_PUBLISH\' first ");

@@ -1,18 +1,25 @@
 package es.um.redes.nanoFiles.tcp.server;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import es.um.redes.nanoFiles.application.NanoFiles;
+import es.um.redes.nanoFiles.tcp.message.PeerMessage;
+import es.um.redes.nanoFiles.tcp.message.PeerMessageOps;
+import es.um.redes.nanoFiles.util.FileInfo;
+
 
 
 
 public class NFServer implements Runnable {
-
 	public static final int PORT = 10000;
-
-
 
 	private ServerSocket serverSocket = null;
 
@@ -82,6 +89,17 @@ public class NFServer implements Runnable {
 		 * TODO: (Boletín SocketsTCP) Usar el socket servidor para esperar conexiones de
 		 * otros peers que soliciten descargar ficheros
 		 */
+		Socket clientSocket = null;
+		while (true) {
+			try {
+				clientSocket = serverSocket.accept();
+				NFServerThread clientThread = new NFServerThread(clientSocket);
+				clientThread.start();
+			} catch (IOException e) {
+				System.out.println("Error accepting client - server terminated");
+				return;
+			}
+		}
 		/*
 		 * TODO: (Boletín SocketsTCP) Al establecerse la conexión con un peer, la
 		 * comunicación con dicho cliente se hace en el método
@@ -96,19 +114,12 @@ public class NFServer implements Runnable {
 		 * hilo es el que se encarga de atender al cliente conectado, no podremos tener
 		 * más de un cliente conectado a este servidor.
 		 */
-
-
-
-
 	}
 	/*
 	 * TODO: (Boletín SocketsTCP) Añadir métodos a esta clase para: 1) Arrancar el
 	 * servidor en un hilo nuevo que se ejecutará en segundo plano 2) Detener el
 	 * servidor (stopserver) 3) Obtener el puerto de escucha del servidor etc.
 	 */
-
-
-
 
 	/**
 	 * Método de clase que implementa el extremo del servidor del protocolo de
@@ -138,11 +149,76 @@ public class NFServer implements Runnable {
 		 * de su hash completo.
 		 */
 
-
-
+		DataInputStream dis = null;
+		DataOutputStream dos = null;
+		try {
+			dis = new DataInputStream(socket.getInputStream());
+			dos = new DataOutputStream(socket.getOutputStream());
+		} catch (IOException e) {
+			System.out.println("Unable to read client message - terminate connection");
+			return;
+		}
+		
+		FileInfo reqFileInfo = null;
+		FileInputStream fileStream = null;
+		
+		while (true) {
+			PeerMessage peerMessage = null, messageToSend = null;
+			try {
+				peerMessage = PeerMessage.readMessageFromInputStream(dis);
+			} catch (IOException e) {
+				System.out.println("Unable to read client message - terminate connection");
+				return;
+			}
+			
+			System.out.println("Recibido mensaje del peer " + PeerMessageOps.opcodeToOperation(peerMessage.getOpcode()));
+			
+			switch (peerMessage.getOpcode()) {
+			case PeerMessageOps.OPCODE_FILEREQUEST: {
+				var files = NanoFiles.db.getFiles();
+				reqFileInfo = FileInfo.lookupHash(files, peerMessage.getReqFileHash());
+				if (reqFileInfo == null) {
+					messageToSend = new PeerMessage(PeerMessageOps.OPCODE_FILE_NOT_FOUND);
+					break;
+				}
+				File reqFile = new File(reqFileInfo.getPath());
+				try {
+					fileStream = new FileInputStream(reqFile);
+				} catch (FileNotFoundException e) {
+					System.out.println("File not found" + reqFile);
+					messageToSend = new PeerMessage(PeerMessageOps.OPCODE_FILE_NOT_FOUND);
+					break;
+				}
+				messageToSend = new PeerMessage(PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED);
+			} break;
+			case PeerMessageOps.OPCODE_CHUNKREQUEST: {
+				if (fileStream == null) {
+					messageToSend = new PeerMessage(PeerMessageOps.OPCODE_CHUNKREQUEST_OUTOFRANGE);
+					break;
+				}
+				
+				byte[] chunk = null;
+				try {
+					fileStream.getChannel().position(peerMessage.getOffset());
+					DataInputStream fdis = new DataInputStream(fileStream);
+					// literalmente no hay forma en java de hacer esto sin copiar el bufer XD
+					chunk = fdis.readNBytes(peerMessage.getSize());
+				} catch (IOException e) {
+					messageToSend = new PeerMessage(PeerMessageOps.OPCODE_CHUNKREQUEST_OUTOFRANGE);
+					break;
+				}
+				
+				messageToSend = new PeerMessage(PeerMessageOps.OPCODE_CHUNK, chunk);
+			} break;
+			}
+			
+			System.out.println("Enviando " + PeerMessageOps.opcodeToOperation(messageToSend.getOpcode()));
+			try {
+				messageToSend.writeMessageToOutputStream(dos);
+			} catch (IOException e) {
+				System.out.println("Unable to send message - terminate connection");
+				return;
+			}
+		}
 	}
-
-
-
-
 }

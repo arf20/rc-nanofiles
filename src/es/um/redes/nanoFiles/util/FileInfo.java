@@ -61,6 +61,10 @@ public class FileInfo {
 	public long getSize() {
 		return fileSize;
 	}
+	
+	public String getPath() {
+		return filePath;
+	}
 
 	/**
 	 * Scans the given directory and returns an array of FileInfo objects, one for
@@ -139,5 +143,14 @@ public class FileInfo {
 		FileInfo[] result = new FileInfo[matchingFiles.size()];
 		matchingFiles.toArray(result);
 		return result;
+	}
+	
+	public static FileInfo lookupHash(FileInfo[] files, String hash) {
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].getHash().equals(hash)) {
+				return files[i];
+			}
+		}
+		return null;
 	}
 }

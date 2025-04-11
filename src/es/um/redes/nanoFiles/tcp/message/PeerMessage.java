@@ -15,10 +15,6 @@ import java.util.concurrent.StructureViolationException;
 import es.um.redes.nanoFiles.util.FileInfo;
 
 public class PeerMessage {
-
-
-
-
 	private byte opcode;
 
 	/*
@@ -26,12 +22,11 @@ public class PeerMessage {
 	 * específicos para crear mensajes con otros campos, según sea necesario
 	 * 
 	 */
-	//Campo con la longitud en bytes del nombre de fichero en una petición de descarga.
-	private byte longFileName; 
-	//Campo con el nombre del fichero que se quiere descargar.
-	private byte[] fileName;
-
-
+	// Campo con el hash del archivo en una petición de descarga
+	private byte[] reqFileHash;
+	private long offset;
+	private int size;
+	private byte[] chunkData;
 
 	public PeerMessage() {
 		opcode = PeerMessageOps.OPCODE_INVALID_CODE;
@@ -41,10 +36,14 @@ public class PeerMessage {
 		opcode = op;
 	}
 	
-	public PeerMessage(byte op, String fileName) {
+	public PeerMessage(byte op, String reqFileHash) {
 		opcode = op;
-		this.fileName = fileName.getBytes();
-		longFileName = (byte) this.fileName.length;
+		this.reqFileHash = hexStringToBytes(reqFileHash);
+	}
+	
+	public PeerMessage(byte op, byte[] chunkData) {
+		opcode = op;
+		this.chunkData = chunkData;
 	}
 
 	/*
@@ -57,32 +56,62 @@ public class PeerMessage {
 		return opcode;
 	}
 	
-	public byte[] getFileName() {
+	public String getReqFileHash() {
 		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) {
 			throw new StructureViolationException("This instance does not support getFileName. Check \'getOpcode() == PeerMessageOps.OPCODE_FILEREQUEST\' first");
 		}
-		return Arrays.copyOf(fileName, longFileName);
+		return bytesToHex(reqFileHash);
 	}
 	
-	public byte getLongFileName () {
-		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST)
-			throw new StructureViolationException("This instance does not support getLongFileName. Check \'getOpcode() == PeerMessageOps.OPCODE_FILEREQUEST\' first");
-		return longFileName;
-	}
-	
-	private void setFileName(byte[] newName) {
+	private void setReqFileHash(String reqFileHash) {
 		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) 
 			throw new StructureViolationException("This instance does not have the field fileName");
-		fileName = newName;
+		this.reqFileHash = hexStringToBytes(reqFileHash);
 	}
-
-	private void setLongFileName(byte size) {
+	
+	private void setReqFileHash(byte[] reqFileHash) {
 		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) 
-			throw new StructureViolationException("This instance does not have the field longFileName");
-		longFileName = size;
+			throw new StructureViolationException("This instance does not have the field fileName");
+		this.reqFileHash = reqFileHash;
+	}
+	
+	public long getOffset() {
+		return this.offset;
+	}
+	
+	private void setOffset(long offset) {
+		this.offset = offset;
+	}
+	
+	public int getSize() {
+		return this.size;
+	}
+	
+	private void setSize(int size) {
+		this.size = size;
+	}
+	
+	private static byte[] hexStringToBytes(String s) {
+	    int len = s.length();
+	    byte[] data = new byte[len / 2];
+	    for (int i = 0; i < len; i += 2) {
+	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+	                             + Character.digit(s.charAt(i+1), 16));
+	    }
+	    return data;
 	}
 
-
+	public static String bytesToHex(byte[] bytes) {
+		final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+	    char[] hexChars = new char[bytes.length * 2];
+	    for (int j = 0; j < bytes.length; j++) {
+	        int v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    }
+	    return new String(hexChars);
+	}
+	
 	/**
 	 * Método de clase para parsear los campos de un mensaje y construir el objeto
 	 * DirMessage que contiene los datos del mensaje recibido
@@ -103,21 +132,19 @@ public class PeerMessage {
 		 */
 		PeerMessage message = new PeerMessage();
 		byte opcode = dis.readByte();
+		message.opcode = opcode;
 		switch (opcode) {
-			case PeerMessageOps.OPCODE_FILEREQUEST:
+			case PeerMessageOps.OPCODE_FILEREQUEST: {
+				message.setReqFileHash(dis.readNBytes(20));
+			} break;
+			case PeerMessageOps.OPCODE_CHUNKREQUEST: {
 				message.opcode = opcode;
-				message.setLongFileName(dis.readByte());
-				byte[] nameBytes = new byte[message.getLongFileName()];
-				dis.readFully(nameBytes);
-				message.setFileName(nameBytes);
-				break;
-
-
-
+				message.setOffset(dis.readLong());
+				message.setSize(dis.readInt());
+			} break;
 		default:
-			System.err.println("PeerMessage.readMessageFromInputStream doesn't know how to parse this message opcode: "
-					+ PeerMessageOps.opcodeToOperation(opcode));
-			System.exit(-1);
+			System.err.println("PeerMessage.readMessageFromInputStream doesn't know how to parse this message opcode: " + opcode);
+			//System.exit(-1); // esto es Denial of Service
 		}
 		return message;
 	}
@@ -133,20 +160,17 @@ public class PeerMessage {
 
 		dos.writeByte(opcode);
 		switch (opcode) {
-			case PeerMessageOps.OPCODE_FILEREQUEST:
-				dos.writeByte(longFileName);
-				dos.write(fileName);
-				break;
-			
-
-
+			case PeerMessageOps.OPCODE_FILEREQUEST: {
+				dos.write(reqFileHash);
+			} break;
+			case PeerMessageOps.OPCODE_CHUNKREQUEST:
+			case PeerMessageOps.OPCODE_CHUNK: {
+				dos.writeLong(offset);
+				dos.writeInt(size);
+				dos.write(chunkData);
+			} break;
 		default:
-			System.err.println("PeerMessage.writeMessageToOutputStream found unexpected message opcode " + opcode + "("
-					+ PeerMessageOps.opcodeToOperation(opcode) + ")");
+			System.err.println("PeerMessage.writeMessageToOutputStream found unexpected message opcode " + opcode);
 		}
 	}
-
-
-
-
 }

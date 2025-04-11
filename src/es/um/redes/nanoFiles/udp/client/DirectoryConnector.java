@@ -349,7 +349,7 @@ public class DirectoryConnector {
 			return new InetSocketAddress[0];
 		
 		DirMessage peerlistResponse = DirMessage.fromString(new String(responseData, 0, responseData.length));
-		if (peerlistResponse.getOperation() != DirMessageOps.OPERATION_PEERLIST_RES)
+		if (!peerlistResponse.getOperation().equals(DirMessageOps.OPERATION_PEERLIST_RES))
 			return new InetSocketAddress[0];
 		
 		HashSet<InetSocketAddress> peerSet = new HashSet<InetSocketAddress>();
@@ -361,9 +361,9 @@ public class DirectoryConnector {
 			} catch (UnknownHostException e) {
 				continue;
 			}
-			short port = NFServer.PORT;
+			int port = NFServer.PORT;
 			if (peerfields.length == 2)
-				port = Short.parseShort(peerfields[1]);
+				port = Integer.parseInt(peerfields[1]);
 			peerSet.add(new InetSocketAddress(addr, port));
 		}
 

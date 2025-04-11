@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 import es.um.redes.nanoFiles.application.NanoFiles;
+import es.um.redes.nanoFiles.tcp.server.NFServer;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
 import es.um.redes.nanoFiles.udp.message.DirMessageOps;
 import es.um.redes.nanoFiles.util.FileInfo;
@@ -263,7 +264,11 @@ public class NFDirectoryServer {
 				peers.remove(clientAddr);
 			} else {
 				files.forEach(file -> database.put(file.getHash(), file));
-				peers.put(clientAddr, new HashSet<FileInfo>(files));
+				
+				int port = NFServer.PORT;
+				if (clientMessage.getPort() != 0)
+					port = clientMessage.getPort();
+				peers.put(new InetSocketAddress(clientAddr.getHostName(), port), new HashSet<FileInfo>(files));
 			}
 
 			msgToSend = new DirMessage(DirMessageOps.OPERATION_PUBLISH_RES);
