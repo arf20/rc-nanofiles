@@ -154,10 +154,10 @@ public class NFController {
 			if (NanoFiles.testModeTCP) {
 				controllerPeer.testTCPClient();
 			} else {
-				String fileHash = controllerDir.getFilenameHash(targetFilenameSubstring);
+				FileInfo fileInfo = controllerDir.getFilenameInfo(targetFilenameSubstring);
 				InetSocketAddress[] serverAddressList = controllerDir
-						.getServerAddressesSharingThisFile(fileHash);
-				commandSucceeded = controllerPeer.downloadFileFromServers(serverAddressList, fileHash,
+						.getServerAddressesSharingThisFile(fileInfo.getHash());
+				commandSucceeded = controllerPeer.downloadFileFromServers(serverAddressList, fileInfo,
 						downloadLocalFileName);
 			}
 			break;

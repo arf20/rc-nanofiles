@@ -370,17 +370,17 @@ public class DirectoryConnector {
 		return true;
 	}
 	
-	public String getFilenameHash(String filenameSubstring) {
+	public FileInfo getFilenameInfo(String filenameSubstring) {
 		DirMessage filelistRequest = new DirMessage(DirMessageOps.OPERATION_FILELIST);
 		byte[] responseData = sendAndReceiveDatagrams(filelistRequest.toString().getBytes());
 		if (responseData == null)
 			return null;
 		
-		ArrayList<String> matches = new ArrayList<String>();
+		ArrayList<FileInfo> matches = new ArrayList<>();
 		DirMessage filelistResponse = DirMessage.fromString(new String(responseData));
 		for (var file : filelistResponse.getFiles()) {
 			if (file.getName().contains(filenameSubstring)) {
-				matches.add(file.getHash());
+				matches.add(file);
 			}
 		}
 		

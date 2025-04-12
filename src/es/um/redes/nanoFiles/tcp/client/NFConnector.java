@@ -53,10 +53,6 @@ public class NFConnector {
 	public InetSocketAddress getServerAddr() {
 		return serverAddr;
 	}
-	
-	public void registerSocket(Selector selector) throws ClosedChannelException {
-		socket.getChannel().register(selector, SelectionKey.OP_READ);
-	}
 
 	public void sendMessage(PeerMessage msg) throws IOException {
 		msg.writeMessageToOutputStream(dos);

@@ -45,6 +45,12 @@ public class PeerMessage {
 		opcode = op;
 		this.chunkData = chunkData;
 	}
+	
+	public PeerMessage(byte opcode, long offset, int size ) {
+		this.opcode = opcode;
+		this.offset = offset;
+		this.size = size;
+	}
 
 	/*
 	 * TODO: (Boletín MensajesBinarios) Crear métodos getter y setter para obtener
@@ -89,6 +95,10 @@ public class PeerMessage {
 	
 	private void setSize(int size) {
 		this.size = size;
+	}
+	
+	public byte[] getChunkData() {
+		return chunkData;
 	}
 	
 	private static byte[] hexStringToBytes(String s) {

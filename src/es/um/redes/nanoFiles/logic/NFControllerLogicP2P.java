@@ -8,7 +8,13 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.HashMap;
+import java.io.DataInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import es.um.redes.nanoFiles.tcp.client.NFConnector;
 import es.um.redes.nanoFiles.tcp.message.PeerMessage;
@@ -28,7 +34,7 @@ public class NFControllerLogicP2P {
 	private NFServer fileServer = null;
 	private Thread serverThread = null;
 
-	public final long MAX_BUFF_SIZE = 2097175L; // max chunk + header
+	public final int CHUNK_SIZE = 2097152; // 2MiB
 	
 	protected NFControllerLogicP2P() {
 		
@@ -133,7 +139,7 @@ public class NFControllerLogicP2P {
 	 * @param localFileName           Nombre con el que se guardará el fichero
 	 *                                descargado
 	 */
-	protected boolean downloadFileFromServers(InetSocketAddress[] serverAddressList, String targetFileHash,
+	protected boolean downloadFileFromServers(InetSocketAddress[] serverAddressList, FileInfo targetFileInfo,
 		String localFileName)
 	{
 		if (serverAddressList.length == 0) {
@@ -156,74 +162,89 @@ public class NFControllerLogicP2P {
 		 * posible recuperarse), se debe informar sin abortar el programa
 		 */
 		
-		File file = new File(localFileName);
-		if (file.exists()) {
+		RandomAccessFile file = null;
+		try {
+			file = new RandomAccessFile(localFileName, "w");
+		} catch (FileNotFoundException e) {
 			System.out.println("File exists - not downloading");
 			return false;
 		}
 
 		ArrayList<NFConnector> connectors = new ArrayList<NFConnector>(serverAddressList.length);
+		HashMap<NFConnector, Integer> chunkCounter = new HashMap<NFConnector, Integer>();
 		for (int i = 0; i < serverAddressList.length; i++) {
 			try {
 				 NFConnector nfc = new NFConnector(serverAddressList[i]);
 				 connectors.add(nfc);
+				 chunkCounter.put(nfc, 0);
 			} catch (IOException e) {
 				System.out.println("Could not contact peer" + serverAddressList[i]);
 			}
 		}
 		
-		PeerMessage filereqMessage = new PeerMessage(PeerMessageOps.OPCODE_FILEREQUEST, targetFileHash);
+		PeerMessage filereqMessage = new PeerMessage(PeerMessageOps.OPCODE_FILEREQUEST, targetFileInfo.getHash());
 		
-		for (var c : connectors) {
+		// select file
+		PeerMessage responseMessage = null;
+		for (Iterator it = connectors.iterator(); it.hasNext(); ) {
+			var c = (NFConnector)it.next();
 			try {
 				c.sendMessage(filereqMessage);
+				responseMessage = c.receiveMessage();
 			} catch (IOException e) {
 				System.out.println("Client died: " + c);
-				connectors.remove(c);
-			}
-		}
-		
-		Selector selector = null;
-		try {
-			selector = Selector.open();
-			for (var c : connectors) {
-				c.registerSocket(selector);
-			}
-		} catch (IOException e) {
-			System.out.println("Error creating selector");
-			return false;
-		}
-		
-		final ByteBuffer buff = new ByteBuffer(MAX_BUFF_SIZE);
-		
-		while (true) {
-			try {
-				selector.select();
-			} catch (IOException e) {
-				System.out.println("Error selecting socket");
-				return false;
+				it.remove();
 			}
 			
-			Set<SelectionKey> selectedKeys = selector.selectedKeys();
-			Iterator<SelectionKey> iter = selectedKeys.iterator();
-            while (iter.hasNext()) {
-                SelectionKey key = iter.next();
+			if (responseMessage.getOpcode() != PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED) {
+				System.out.println("Client does not have file: " + c);
+				it.remove();
+			}
+		}
 
-                if (!key.isReadable())
-                	continue;
-                
-                SocketChannel sc = (SocketChannel)key.channel();
-                
-                PeerMessage peerMessage = new PeerMessage();
-                PeerMessage.readMessageFromInputStream(sc.);
-                
-                iter.remove();
-            }
+		/* download chunks */
+		int chunks = (int)(targetFileInfo.getSize() / (long)CHUNK_SIZE + (targetFileInfo.getSize() % (long)CHUNK_SIZE == 0 ? 0 : 1));
+		
+		
+
+		
+		for (int chunk = 0; chunk < chunks;) {
+			// usar clientes diferentes para cada chunk, rotandose
+			NFConnector conn = connectors.get(chunk % connectors.size());
+			
+			PeerMessage chunkreqMessage = new PeerMessage(PeerMessageOps.OPCODE_CHUNKREQUEST,
+				(long)chunk * CHUNK_SIZE, chunk == chunks - 1 ? (int)(targetFileInfo.getSize() % (long)CHUNK_SIZE) : CHUNK_SIZE);
+			
+			try {
+				conn.sendMessage(chunkreqMessage);
+				responseMessage = conn.receiveMessage();
+			} catch (IOException e) {
+				System.out.println("Client died: " + conn);
+				connectors.remove(conn);
+				continue;
+			}
+			
+			if (responseMessage.getOpcode() != PeerMessageOps.OPCODE_CHUNKREQUEST) {
+				System.out.println("Peer had an error or bad offset");
+				connectors.remove(conn);
+				continue;
+			}
+			
+			try {
+				file.seek(responseMessage.getOffset());
+				file.write(responseMessage.getChunkData());
+			} catch (IOException e) {
+				System.out.println("Out of space");
+			}
+		
+			chunk++;
+			chunkCounter.put(conn, chunkCounter.get(conn) + 1);
 		}
 		
-		
-		
-
+		for (var conn : connectors) {
+			System.out.println("client\t\tchunks");
+			System.out.println(conn + "" + chunkCounter.get(conn));
+		}
 
 		return true;
 	}
