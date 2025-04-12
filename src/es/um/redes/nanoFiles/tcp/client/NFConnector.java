@@ -59,8 +59,6 @@ public class NFConnector {
 	}
 	
 	public PeerMessage receiveMessage() throws IOException {
-		PeerMessage msg = new PeerMessage();
-		msg.readMessageFromInputStream(dis);
-		return msg;
+		return PeerMessage.readMessageFromInputStream(dis);
 	}
 }

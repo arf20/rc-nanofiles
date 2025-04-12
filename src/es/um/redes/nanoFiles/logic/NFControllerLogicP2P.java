@@ -24,6 +24,7 @@ import es.um.redes.nanoFiles.application.NanoFiles;
 
 
 import es.um.redes.nanoFiles.tcp.server.NFServer;
+import es.um.redes.nanoFiles.util.FileDigest;
 import es.um.redes.nanoFiles.util.FileInfo;
 
 public class NFControllerLogicP2P {
@@ -162,9 +163,11 @@ public class NFControllerLogicP2P {
 		 * posible recuperarse), se debe informar sin abortar el programa
 		 */
 		
+		String filePath = NanoFiles.sharedDirname + "/" + localFileName;
+		
 		RandomAccessFile file = null;
 		try {
-			file = new RandomAccessFile(localFileName, "w");
+			file = new RandomAccessFile(filePath, "rw");
 		} catch (FileNotFoundException e) {
 			System.out.println("File exists - not downloading");
 			return false;
@@ -201,12 +204,16 @@ public class NFControllerLogicP2P {
 				it.remove();
 			}
 		}
+		
+		if (connectors.size() < 1) {
+			System.out.println("No peers left - stopping");
+			return false;
+		}
 
 		/* download chunks */
 		int chunks = (int)(targetFileInfo.getSize() / (long)CHUNK_SIZE + (targetFileInfo.getSize() % (long)CHUNK_SIZE == 0 ? 0 : 1));
 		
-		
-
+		System.out.println("Downloading " + chunks + " chunks from " + connectors.size() + " peers");
 		
 		for (int chunk = 0; chunk < chunks;) {
 			// usar clientes diferentes para cada chunk, rotandose
@@ -224,7 +231,7 @@ public class NFControllerLogicP2P {
 				continue;
 			}
 			
-			if (responseMessage.getOpcode() != PeerMessageOps.OPCODE_CHUNKREQUEST) {
+			if (responseMessage.getOpcode() != PeerMessageOps.OPCODE_CHUNK) {
 				System.out.println("Peer had an error or bad offset");
 				connectors.remove(conn);
 				continue;
@@ -235,15 +242,30 @@ public class NFControllerLogicP2P {
 				file.write(responseMessage.getChunkData());
 			} catch (IOException e) {
 				System.out.println("Out of space");
+				return false;
 			}
 		
 			chunk++;
 			chunkCounter.put(conn, chunkCounter.get(conn) + 1);
 		}
 		
+		try {
+			file.close();
+		} catch (IOException e) {
+			return false;
+		}
+		
+		System.out.println("File downloaded.");
+		
+		if (!FileDigest.computeFileChecksumString(filePath).equals(targetFileInfo.getHash())) {
+			System.out.println("File corrupted.");
+			return false;
+		}
+		
+		
 		for (var conn : connectors) {
 			System.out.println("client\t\tchunks");
-			System.out.println(conn + "" + chunkCounter.get(conn));
+			System.out.println(conn.getServerAddr() + "\t" + chunkCounter.get(conn));
 		}
 
 		return true;

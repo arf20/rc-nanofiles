@@ -41,8 +41,10 @@ public class PeerMessage {
 		this.reqFileHash = hexStringToBytes(reqFileHash);
 	}
 	
-	public PeerMessage(byte op, byte[] chunkData) {
+	public PeerMessage(byte op, long offset, int size, byte[] chunkData) {
 		opcode = op;
+		this.offset = offset;
+		this.size = size;
 		this.chunkData = chunkData;
 	}
 	
@@ -101,6 +103,10 @@ public class PeerMessage {
 		return chunkData;
 	}
 	
+	private void setChunkData(byte[] chunkData) {
+		this.chunkData = chunkData;
+	}
+	
 	private static byte[] hexStringToBytes(String s) {
 	    int len = s.length();
 	    byte[] data = new byte[len / 2];
@@ -148,10 +154,19 @@ public class PeerMessage {
 				message.setReqFileHash(dis.readNBytes(20));
 			} break;
 			case PeerMessageOps.OPCODE_CHUNKREQUEST: {
-				message.opcode = opcode;
 				message.setOffset(dis.readLong());
 				message.setSize(dis.readInt());
 			} break;
+			case PeerMessageOps.OPCODE_CHUNK: {
+				message.setOffset(dis.readLong());
+				message.setSize(dis.readInt());
+				message.setChunkData(dis.readNBytes(message.getSize()));
+			} break;
+			case PeerMessageOps.OPCODE_STOP:
+			case PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED:
+			case PeerMessageOps.OPCODE_FILE_NOT_FOUND:
+			case PeerMessageOps.OPCODE_CHUNKREQUEST_OUTOFRANGE:
+				break;
 		default:
 			System.err.println("PeerMessage.readMessageFromInputStream doesn't know how to parse this message opcode: " + opcode);
 			//System.exit(-1); // esto es Denial of Service
@@ -173,11 +188,14 @@ public class PeerMessage {
 			case PeerMessageOps.OPCODE_FILEREQUEST: {
 				dos.write(reqFileHash);
 			} break;
-			case PeerMessageOps.OPCODE_CHUNKREQUEST:
 			case PeerMessageOps.OPCODE_CHUNK: {
 				dos.writeLong(offset);
 				dos.writeInt(size);
 				dos.write(chunkData);
+			} break;
+			case PeerMessageOps.OPCODE_CHUNKREQUEST: {
+				dos.writeLong(offset);
+				dos.writeInt(size);
 			} break;
 			case PeerMessageOps.OPCODE_STOP:
 			case PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED:
