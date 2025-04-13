@@ -50,21 +50,6 @@ operation: filelist
 
 ```
 
-#### Peerlist request
-
-Get the peers that serve this file known by the directory
-
- - Operation `peerlist`
- - Fields:
- 	- File hash
- - Answer 'peerlist reply'
- 
-```
-operation: peerlist
-reqfile: <hash>
-
-```
-
 #### Publish request
 
 Inform directory of list available files for download from client
@@ -120,37 +105,9 @@ Send back list of known (filename, hash, size and peers) for every file known
 
 ```
 operation: filelistres
-file: <hash1>; <filename1>; <size1>
-file: <hash2>; <filename2>; <size2>
+file: <hash1>; <filename1>; <size1>; <server1a>, <server1b> [...]
+file: <hash2>; <filename2>; <size2>; <server2a>, <server2b> [...]
 [...]
-
-```
-
-#### Peerlist reply
-
-Send back known peers that serve the file
-
- - Operation `peerlistres`
- - Fields: (see below), the list can be empty
- - Answer 'peerlist reply'
- 
-```
-operation: peerlistres
-peer: <hostname1[:port]>
-peer: <hostname2[:port]>
-
-```
-
-#### Peerlist bad reply
-
-The hash in `reqfile` is of any file known by directory
-
- - Operation `peerlistbad`
- - Fields: None
- - Answer to 'peerlist request'
- 
-```
-operation: peerlistbad
 
 ```
 
