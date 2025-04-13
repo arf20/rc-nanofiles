@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author mar_sang
@@ -33,6 +34,11 @@ public class ExternFile extends FileInfo{
 	public ExternFile(FileInfo file ) {
 		super(file.getHash(), file.getName(), file.getSize(), file.getPath());
 		this.servers = new HashSet<String>();		
+	}
+	
+	public ExternFile(FileInfo file, Set<String> servers ) {
+		super(file.getHash(), file.getName(), file.getSize(), file.getPath());
+		this.servers = (HashSet<String>) servers;		
 	}
 	
 	/**

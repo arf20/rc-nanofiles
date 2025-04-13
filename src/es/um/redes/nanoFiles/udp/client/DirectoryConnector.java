@@ -6,15 +6,12 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import es.um.redes.nanoFiles.application.NanoFiles;
-import es.um.redes.nanoFiles.tcp.server.NFServer;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
 import es.um.redes.nanoFiles.udp.message.DirMessageOps;
 import es.um.redes.nanoFiles.util.ExternFile;
@@ -380,16 +377,21 @@ public class DirectoryConnector {
 		ArrayList<FileInfo> matches = new ArrayList<>();
 		DirMessage filelistResponse = DirMessage.fromString(new String(responseData));
 		for (var file : filelistResponse.getFiles()) {
+			if (file.getName().equals(filenameSubstring)) {
+				return new ExternFile(file, filelistResponse.getPeers().get(file.getHash()));
+			}
 			if (file.getName().contains(filenameSubstring)) {
-				var peers = filelistResponse.getPeers().get(file.getHash()).toArray(new String[0]);
 				
-				ExternFile newFile = new ExternFile(file.getHash(), file.getName(), file.fileSize, file.getPath(), peers);
-				matches.add(newFile);
+				matches.add(new ExternFile(file, filelistResponse.getPeers().get(file.getHash()) ));
 			}
 		}
 		
 		if (matches.size() > 1) {
-			System.out.println("subcadena ambigua");
+			System.err.println("Ambiguous substring");
+			return null;
+		}
+		if(matches.isEmpty()) {
+			System.out.println("File not found");
 			return null;
 		}
 		

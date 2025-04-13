@@ -208,7 +208,7 @@ public class NFServer implements Runnable {
 					break;
 				}
 				
-				messageToSend = new PeerMessage(PeerMessageOps.OPCODE_CHUNK, chunk);
+				messageToSend = new PeerMessage(PeerMessageOps.OPCODE_CHUNK, peerMessage.getOffset(), chunk.length, chunk);
 			} break;
 			}
 			

@@ -156,8 +156,12 @@ public class NFController {
 				controllerPeer.testTCPClient();
 			} else {
 				ExternFile fileInfo = controllerDir.getFilenameInfo(targetFilenameSubstring);
+				if (fileInfo == null) {
+					System.err.println("Download failed");
+					break;
+				}
 				InetSocketAddress[] serverAddressList = fileInfo.getServers();
-						//controllerDir.getServerAddressesSharingThisFile(fileInfo.getHash());
+
 				commandSucceeded = controllerPeer.downloadFileFromServers(serverAddressList, fileInfo,
 						downloadLocalFileName);
 			}

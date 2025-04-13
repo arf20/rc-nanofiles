@@ -4,12 +4,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.tcp.server.NFServer;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
@@ -265,19 +262,6 @@ public class NFDirectoryServer {
 				for(var s : servers) {
 					peersForFile.get(file).add(s.getHostName() + ":" + s.getPort());
 				}
-			/*	for (var peer : peers.keySet()) {					
-					var peerFiles = peers.get(peer);
-					
-					peerFiles.stream().
-						filter(f -> f.getHash().equals(file)).
-						forEach( (f) -> {if(peersForFile.containsKey(file)) {
-											peersForFile.get(file).add(peer.getHostName() + ":" + peer.getPort());
-										} else {
-											peersForFile.put(file, new HashSet<String>());
-											peersForFile.get(file).add(peer.getHostName() + ":" + peer.getPort());
-										}
-										});
-				}*/
 			}
 			
 			msgToSend = new DirMessage(DirMessageOps.OPERATION_FILELIST_RES, 
@@ -307,7 +291,6 @@ public class NFDirectoryServer {
 						database.put(file.getHash(), newFile);
 					}
 				}
-				//files.forEach(file -> database.put(file.getHash(), file));				
 				
 				peers.put(new InetSocketAddress(clientAddr.getHostName(), port), new HashSet<FileInfo>(files));
 			}
@@ -315,35 +298,7 @@ public class NFDirectoryServer {
 			msgToSend = new DirMessage(DirMessageOps.OPERATION_PUBLISH_RES);
 			System.out.println("Sending: "+ DirMessageOps.OPERATION_PUBLISH_RES + "...");
 		} break;
-/*		case DirMessageOps.OPERATION_PEERLIST: {
-			var reqFileHash = clientMessage.getReqFile();
-			
-			if (!reqFileHash.matches("^[a-fA-F0-9]{40}$")) {
-				System.err.println("Bad hash: \"" + reqFileHash + "\"");
-				msgToSend = new DirMessage(DirMessageOps.OPERATION_PEERLIST_BAD);
-				System.out.println("Sending: "+ DirMessageOps.OPERATION_PEERLIST_BAD + "...");
-				break;
-			}
-			
-			if (!database.containsKey(reqFileHash)) {
-				System.err.println("Hash not found in database: \"" + reqFileHash + "\"");
-				msgToSend = new DirMessage(DirMessageOps.OPERATION_PEERLIST_BAD);
-				System.out.println("Sending: "+ DirMessageOps.OPERATION_PEERLIST_BAD + "...");
-				break;
-			}
-			
-			HashSet<String> filePeers = new HashSet<String>();
-			for (var peer : peers.keySet()) {
-				var files = peers.get(peer);
-				
-				for (var file : files)
-					if (file.getHash().equals(reqFileHash))
-						filePeers.add(peer.getHostName() + ":" + peer.getPort());
-			}
-			
-			msgToSend = new DirMessage(DirMessageOps.OPERATION_PEERLIST_RES, filePeers);
-			System.out.println("Sending: "+ DirMessageOps.OPERATION_PEERLIST_RES + "...");
-		} break;*/
+
 		default:
 			System.err.println("Unexpected message operation: \"" + operation + "\"");
 			// System.exit(-1); // nice denial of service there, let me comment that for you
