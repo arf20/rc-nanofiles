@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.udp.client.DirectoryConnector;
+import es.um.redes.nanoFiles.util.ExternFile;
 import es.um.redes.nanoFiles.util.FileInfo;
 
 public class NFControllerLogicDir {
@@ -151,15 +152,15 @@ public class NFControllerLogicDir {
 	 *         ningún fichero concreto (no existe o es una subcadena ambigua)
 	 * 
 	 */
-	protected InetSocketAddress[] getServerAddressesSharingThisFile(String filenameSubstring) {
+//	protected InetSocketAddress[] getServerAddressesSharingThisFile(String filenameSubstring) {
 		/*
 		 * Comunicarse con el directorio (a través del directoryConnector) para
 		 * preguntar por aquellos servidores que están sirviendo ficheros cuyo nombre
 		 * contiene la subcadena dada.
 		 * 
 		 */
-		return directoryConnector.getServersSharingThisFile(filenameSubstring);
-	}
+//		return directoryConnector.getServersSharingThisFile(filenameSubstring);
+//	}
 
 	/**
 	 * Método para dar de baja a nuestro servidor de ficheros en el directorio.
@@ -183,7 +184,7 @@ public class NFControllerLogicDir {
 		return result;
 	}
 	
-	public FileInfo getFilenameInfo(String filenameSubstring) {
+	public ExternFile getFilenameInfo(String filenameSubstring) {
 		return directoryConnector.getFilenameInfo(filenameSubstring);
 	}
 

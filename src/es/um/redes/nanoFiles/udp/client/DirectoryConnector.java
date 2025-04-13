@@ -17,6 +17,7 @@ import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.tcp.server.NFServer;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
 import es.um.redes.nanoFiles.udp.message.DirMessageOps;
+import es.um.redes.nanoFiles.util.ExternFile;
 import es.um.redes.nanoFiles.util.FileInfo;
 
 /**
@@ -322,7 +323,7 @@ public class DirectoryConnector {
 	 *         directorio el fichero indicado. Si no hay ningún servidor, devuelve
 	 *         una lista vacía.
 	 */
-	public InetSocketAddress[] getServersSharingThisFile(String fileHash) {
+/*	public InetSocketAddress[] getServersSharingThisFile(FileInfo targetFile, String fileHash) {
 		DirMessage peerlistRequest = new DirMessage(DirMessageOps.OPERATION_PEERLIST, fileHash);
 		byte[] responseData = sendAndReceiveDatagrams(peerlistRequest.toString().getBytes());
 		if (responseData == null)
@@ -348,7 +349,7 @@ public class DirectoryConnector {
 		}
 
 		return peerSet.toArray(new InetSocketAddress[0]);
-	}
+	}*/
 
 	/**
 	 * Método para darse de baja como servidor de ficheros.
@@ -370,7 +371,7 @@ public class DirectoryConnector {
 		return true;
 	}
 	
-	public FileInfo getFilenameInfo(String filenameSubstring) {
+	public ExternFile getFilenameInfo(String filenameSubstring) {
 		DirMessage filelistRequest = new DirMessage(DirMessageOps.OPERATION_FILELIST);
 		byte[] responseData = sendAndReceiveDatagrams(filelistRequest.toString().getBytes());
 		if (responseData == null)
@@ -380,7 +381,10 @@ public class DirectoryConnector {
 		DirMessage filelistResponse = DirMessage.fromString(new String(responseData));
 		for (var file : filelistResponse.getFiles()) {
 			if (file.getName().contains(filenameSubstring)) {
-				matches.add(file);
+				var peers = filelistResponse.getPeers().get(file.getHash()).toArray(new String[0]);
+				
+				ExternFile newFile = new ExternFile(file.getHash(), file.getName(), file.fileSize, file.getPath(), peers);
+				matches.add(newFile);
 			}
 		}
 		
@@ -389,6 +393,6 @@ public class DirectoryConnector {
 			return null;
 		}
 		
-		return matches.get(0);
+		return (ExternFile) matches.get(0);
 	}
 }

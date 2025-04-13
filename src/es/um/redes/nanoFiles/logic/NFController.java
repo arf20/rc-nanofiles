@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.shell.NFCommands;
 import es.um.redes.nanoFiles.shell.NFShell;
+import es.um.redes.nanoFiles.util.ExternFile;
 import es.um.redes.nanoFiles.util.FileInfo;
 
 public class NFController {
@@ -154,9 +155,9 @@ public class NFController {
 			if (NanoFiles.testModeTCP) {
 				controllerPeer.testTCPClient();
 			} else {
-				FileInfo fileInfo = controllerDir.getFilenameInfo(targetFilenameSubstring);
-				InetSocketAddress[] serverAddressList = controllerDir
-						.getServerAddressesSharingThisFile(fileInfo.getHash());
+				ExternFile fileInfo = controllerDir.getFilenameInfo(targetFilenameSubstring);
+				InetSocketAddress[] serverAddressList = fileInfo.getServers();
+						//controllerDir.getServerAddressesSharingThisFile(fileInfo.getHash());
 				commandSucceeded = controllerPeer.downloadFileFromServers(serverAddressList, fileInfo,
 						downloadLocalFileName);
 			}

@@ -15,6 +15,7 @@ import es.um.redes.nanoFiles.tcp.server.NFServer;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
 import es.um.redes.nanoFiles.udp.message.DirMessageOps;
 import es.um.redes.nanoFiles.util.FileInfo;
+import es.um.redes.nanoFiles.util.ExternFile;
 
 public class NFDirectoryServer {
 	/**
@@ -32,7 +33,7 @@ public class NFDirectoryServer {
 	 * funcionalidad del sistema nanoFilesP2P: ficheros publicados, servidores
 	 * registrados, etc.
 	 */
-	private HashMap<String, FileInfo> database;
+	private HashMap<String, ExternFile> database;
 	private HashMap<InetSocketAddress, HashSet<FileInfo>> peers;
 
 	/**
@@ -255,26 +256,66 @@ public class NFDirectoryServer {
 			}
 		} break;
 		case DirMessageOps.OPERATION_FILELIST: {
-			msgToSend = new DirMessage(DirMessageOps.OPERATION_FILELIST_RES, new HashSet<FileInfo>(database.values()));
+			HashMap<String, HashSet<String>> peersForFile = new HashMap<String, 
+					HashSet<String>>();
+			
+			for (var file : database.keySet()) {
+				peersForFile.put(file, new HashSet<>());
+				InetSocketAddress[] servers = database.get(file).getServers();
+				for(var s : servers) {
+					peersForFile.get(file).add(s.getHostName() + ":" + s.getPort());
+				}
+			/*	for (var peer : peers.keySet()) {					
+					var peerFiles = peers.get(peer);
+					
+					peerFiles.stream().
+						filter(f -> f.getHash().equals(file)).
+						forEach( (f) -> {if(peersForFile.containsKey(file)) {
+											peersForFile.get(file).add(peer.getHostName() + ":" + peer.getPort());
+										} else {
+											peersForFile.put(file, new HashSet<String>());
+											peersForFile.get(file).add(peer.getHostName() + ":" + peer.getPort());
+										}
+										});
+				}*/
+			}
+			
+			msgToSend = new DirMessage(DirMessageOps.OPERATION_FILELIST_RES, 
+					new HashSet<FileInfo>(database.values()), peersForFile);
+			
 		} break;
 
 		case DirMessageOps.OPERATION_PUBLISH: {
 			var files = clientMessage.getFiles();
+			int port = NFServer.PORT;
+			if (clientMessage.getPort() != 0)
+				port = clientMessage.getPort();
+			
 			if (files.isEmpty()) {
+				var list = peers.get(clientAddr); 
+				for(var file : list) {
+					database.get(file.getHash()).deleteServer(clientAddr);
+				}				
 				peers.remove(clientAddr);
 			} else {
-				files.forEach(file -> database.put(file.getHash(), file));
+				for (var file : files) {
+					if (database.containsKey(file.getHash())) {
+						database.get(file.getHash()).insertServer(clientAddr.getHostName(), port);
+					} else {
+						ExternFile newFile = new ExternFile(file); 
+						newFile.insertServer(clientAddr.getHostName(), port);
+						database.put(file.getHash(), newFile);
+					}
+				}
+				//files.forEach(file -> database.put(file.getHash(), file));				
 				
-				int port = NFServer.PORT;
-				if (clientMessage.getPort() != 0)
-					port = clientMessage.getPort();
 				peers.put(new InetSocketAddress(clientAddr.getHostName(), port), new HashSet<FileInfo>(files));
 			}
 
 			msgToSend = new DirMessage(DirMessageOps.OPERATION_PUBLISH_RES);
 			System.out.println("Sending: "+ DirMessageOps.OPERATION_PUBLISH_RES + "...");
 		} break;
-		case DirMessageOps.OPERATION_PEERLIST: {
+/*		case DirMessageOps.OPERATION_PEERLIST: {
 			var reqFileHash = clientMessage.getReqFile();
 			
 			if (!reqFileHash.matches("^[a-fA-F0-9]{40}$")) {
@@ -302,7 +343,7 @@ public class NFDirectoryServer {
 			
 			msgToSend = new DirMessage(DirMessageOps.OPERATION_PEERLIST_RES, filePeers);
 			System.out.println("Sending: "+ DirMessageOps.OPERATION_PEERLIST_RES + "...");
-		} break;
+		} break;*/
 		default:
 			System.err.println("Unexpected message operation: \"" + operation + "\"");
 			// System.exit(-1); // nice denial of service there, let me comment that for you

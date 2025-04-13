@@ -14,9 +14,9 @@ public class DirMessageOps {
 	public static final String OPERATION_PING_BAD = "pingbad";
 	public static final String OPERATION_FILELIST = "filelist";
 	public static final String OPERATION_FILELIST_RES = "filelistres";
-	public static final String OPERATION_PEERLIST = "peerlist";
-	public static final String OPERATION_PEERLIST_RES = "peerlistres";
-	public static final String OPERATION_PEERLIST_BAD = "peerlistbad";
+//	public static final String OPERATION_PEERLIST = "peerlist";
+//	public static final String OPERATION_PEERLIST_RES = "peerlistres";
+//	public static final String OPERATION_PEERLIST_BAD = "peerlistbad";
 	public static final String OPERATION_PUBLISH = "publish";
 	public static final String OPERATION_PUBLISH_RES = "publishack";
 }
