@@ -379,13 +379,20 @@ public class DirectoryConnector {
 		ArrayList<FileInfo> matches = new ArrayList<>();
 		DirMessage filelistResponse = DirMessage.fromString(new String(responseData));
 		for (var file : filelistResponse.getFiles()) {
+			if (file.getName().equals(filenameSubstring)) {
+				return file;
+			}
 			if (file.getName().contains(filenameSubstring)) {
 				matches.add(file);
 			}
 		}
 		
 		if (matches.size() > 1) {
-			System.out.println("subcadena ambigua");
+			System.err.println("Ambiguous substring");
+			return null;
+		}
+		if(matches.isEmpty()) {
+			System.out.println("File not found");
 			return null;
 		}
 		
