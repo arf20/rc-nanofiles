@@ -9,7 +9,9 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.udp.message.DirMessage;
@@ -272,7 +274,7 @@ public class DirectoryConnector {
 	 */
 	public boolean registerFileServer(int serverPort, FileInfo[] files) {
 		Set<FileInfo> fileset = Set.copyOf(Arrays.asList(files));
-		DirMessage publishMessage = new DirMessage(DirMessageOps.OPERATION_PUBLISH, (short)serverPort, fileset);
+		DirMessage publishMessage = new DirMessage(DirMessageOps.OPERATION_PUBLISH, serverPort, fileset);
 		byte[] publishResponse = sendAndReceiveDatagrams(publishMessage.toString().getBytes());
 		if (publishResponse == null) {
 			System.out.println("No response");
@@ -307,7 +309,16 @@ public class DirectoryConnector {
 			return new FileInfo[0];
 		
 		DirMessage filelistResponse = DirMessage.fromString(new String(responseData, 0, responseData.length));
-		return filelistResponse.getFiles().toArray(new FileInfo[0]);
+		Map<String, ? extends Set<String>> peers = filelistResponse.getPeers();
+		Set<ExternFile> files;
+		files = filelistResponse.getFiles().stream()
+				.map((f) -> {ExternFile nf = new ExternFile(f);
+						peers.get(f.getHash()).
+							forEach(p -> nf.insertServer((String)p));
+						return nf;})
+			.collect(Collectors.toSet());
+		return files.toArray(new FileInfo[0]);
+		//return filelistResponse.getFiles().toArray(new FileInfo[0]);
 	}
 
 	/**
@@ -354,15 +365,15 @@ public class DirectoryConnector {
 	 * @return Verdadero si el directorio tiene registrado a este peer como servidor
 	 *         y ha dado de baja sus ficheros.
 	 */
-	public boolean unregisterFileServer() {
+	public boolean unregisterFileServer(int port) {
 		// empty files
-		DirMessage publishMessage = new DirMessage(DirMessageOps.OPERATION_PUBLISH, (short)0, new HashSet<FileInfo>());
+		DirMessage publishMessage = new DirMessage(DirMessageOps.OPERATION_PUBLISH, port, new HashSet<FileInfo>());
 		byte[] publishResponse = sendAndReceiveDatagrams(publishMessage.toString().getBytes());
 		if (publishResponse == null)
 			return false;
 		
 		DirMessage publishack = DirMessage.fromString(new String(publishResponse));
-		if (publishack.getOperation() != DirMessageOps.OPERATION_PUBLISH_RES)
+		if (!publishack.getOperation().equals(DirMessageOps.OPERATION_PUBLISH_RES))
 			return false;
 
 		return true;

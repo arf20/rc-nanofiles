@@ -20,7 +20,6 @@ public class NFController {
 	private static final byte ONLINE = 1;
 
 
-
 	/**
 	 * Shell para leer comandos de usuario de la entrada estándar
 	 */
@@ -175,7 +174,7 @@ public class NFController {
 			 */
 			if (controllerPeer.serving()) {
 				controllerPeer.stopFileServer();
-				commandSucceeded = controllerDir.unregisterFileServer();
+				commandSucceeded = controllerDir.unregisterFileServer(controllerPeer.getServerPort());
 			}
 			break;
 		case NFCommands.COM_UPLOAD:
@@ -236,6 +235,15 @@ public class NFController {
 			return;
 		}
 		switch (currentCommand) {
+			case NFCommands.COM_PING:				
+			case NFCommands.COM_FILELIST:
+			case NFCommands.COM_DOWNLOAD:
+			case NFCommands.COM_SERVE:
+			case NFCommands.COM_UPLOAD:
+				currentState = ONLINE;
+				break;
+				
+					
 		default:
 		}
 

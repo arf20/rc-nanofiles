@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.LinkedList;
 
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.tcp.message.PeerMessage;
@@ -21,20 +22,51 @@ import es.um.redes.nanoFiles.util.FileInfo;
 public class NFServer implements Runnable {
 	public static final int PORT = 10000;
 
+	private int ephemeralPort = 0;
+	
 	private ServerSocket serverSocket = null;
+	
+	private static boolean alive = false;
+	
+	private static LinkedList<Socket> sockets = new LinkedList<Socket>();	//lista para cerrar todos los sockes con quit. 
 
 	public NFServer() throws IOException {
 		/*
 		 * TODO: (Boletín SocketsTCP) Crear una direción de socket a partir del puerto
 		 * especificado (PORT)
 		 */
-		InetSocketAddress serverSocketAddress = new InetSocketAddress(PORT);
+		InetSocketAddress serverSocketAddress = new InetSocketAddress(ephemeralPort);
 		/*
 		 * TODO: (Boletín SocketsTCP) Crear un socket servidor y ligarlo a la dirección
 		 * de socket anterior
 		 */
 		serverSocket = new ServerSocket();
 		serverSocket.bind(serverSocketAddress);
+		ephemeralPort = serverSocket.getLocalPort();
+		alive = true;
+	}
+	
+	public boolean isAlive() {
+		return alive;
+	}
+	
+	public void terminate() {
+		alive = false;
+		sockets.forEach((s) -> {
+				try { s.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				});		
+		try {	
+			serverSocket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public int getPort() {
+		return ephemeralPort;
 	}
 
 	/**
@@ -90,9 +122,10 @@ public class NFServer implements Runnable {
 		 * otros peers que soliciten descargar ficheros
 		 */
 		Socket clientSocket = null;
-		while (true) {
+		while (alive) {
 			try {
 				clientSocket = serverSocket.accept();
+				sockets.add(clientSocket);
 				NFServerThread clientThread = new NFServerThread(clientSocket);
 				clientThread.start();
 			} catch (IOException e) {
@@ -162,7 +195,7 @@ public class NFServer implements Runnable {
 		FileInfo reqFileInfo = null;
 		FileInputStream fileStream = null;
 		
-		while (true) {
+		while (alive) {
 			PeerMessage peerMessage = null, messageToSend = null;
 			try {
 				peerMessage = PeerMessage.readMessageFromInputStream(dis);
@@ -212,13 +245,19 @@ public class NFServer implements Runnable {
 			} break;
 			}
 			
+			
+			
 			System.out.println("Enviando " + PeerMessageOps.opcodeToOperation(messageToSend.getOpcode()));
 			try {
 				messageToSend.writeMessageToOutputStream(dos);
 			} catch (IOException e) {
 				System.out.println("Unable to send message - terminate connection");
-				return;
 			}
+		}
+		try {
+			fileStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }

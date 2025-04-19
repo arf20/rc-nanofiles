@@ -278,8 +278,11 @@ public class NFDirectoryServer {
 			if (files.isEmpty()) {
 				var list = peers.get(clientAddr); 
 				for(var file : list) {
-					database.get(file.getHash()).deleteServer(clientAddr);
-				}				
+					database.get(file.getHash()).deleteServer(clientAddr.getHostName(), port);
+					if (database.get(file.getHash()).getServers().length == 0) {
+						database.remove(file.getHash());
+					}
+				}			
 				peers.remove(clientAddr);
 			} else {
 				for (var file : files) {
@@ -292,7 +295,7 @@ public class NFDirectoryServer {
 					}
 				}
 				
-				peers.put(new InetSocketAddress(clientAddr.getHostName(), port), new HashSet<FileInfo>(files));
+				peers.put(new InetSocketAddress(clientAddr.getHostName(), clientAddr.getPort()), new HashSet<FileInfo>(files));
 			}
 
 			msgToSend = new DirMessage(DirMessageOps.OPERATION_PUBLISH_RES);

@@ -71,6 +71,14 @@ public class ExternFile extends FileInfo{
 		servers.add(hostname + ":" + port);
 	}
 	
+	public void insertServer(String socket) {
+		if (socket.matches("[\\w.-]+:\\d{1,5}")) {
+			servers.add(socket);
+		}
+		else
+			System.err.println("La cadena aportada no casa con el formato \"hostname:puerto\"");
+	}
+	
 	/**
 	 * Elimina un host de la lista de servidores de este fichero.
 	 * @param host
@@ -83,7 +91,15 @@ public class ExternFile extends FileInfo{
 	 * Elimina un host de la lista de servidores de este fichero.
 	 * @param host
 	 */
-	public void deleteServer(InetSocketAddress host) {
-		servers.remove(host.getHostName() + ":" + host.getPort());
+	public void deleteServer(String hostName, int port ) {
+		servers.remove(hostName + ":" + port);
+	}
+	
+	public String toString() {
+		StringBuffer cad = new StringBuffer(super.toString());
+		cad.append("at ");
+		servers.forEach(s -> cad.append(s + ", "));
+		cad.replace(cad.lastIndexOf(","), cad.length(), "");
+		return cad.toString();
 	}
 }

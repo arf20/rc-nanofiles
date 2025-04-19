@@ -79,7 +79,7 @@ public class DirMessage {
 		this.peers = (HashMap<String, HashSet<String>>) servers;
 	}
 	
-	public DirMessage(String op, short port, Set<FileInfo> publishfiles) {
+	public DirMessage(String op, int port, Set<FileInfo> publishfiles) {
 		operation = op;
 		this.port = port;
 		files = new HashSet<FileInfo>(publishfiles);
@@ -221,7 +221,8 @@ public class DirMessage {
 					}
 					break;
 				case FIELDNAME_PORT:
-					m.setPort(Short.parseShort(value));
+					m.setPort(Integer.parseInt(value));
+					break;
 
 				default:
 					System.err.println("PANIC: DirMessage.fromString - message with unknown field name " + fieldName);
