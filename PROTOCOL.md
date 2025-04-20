@@ -310,7 +310,7 @@ File is unavailable or not found
 
 #### File already exists
 
-File is unavailable or not found
+File already exists on this peer
 
  - Opcode: 0x15
  - Fields: None
