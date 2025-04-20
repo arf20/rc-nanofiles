@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -194,6 +195,7 @@ public class NFServer implements Runnable {
 		
 		FileInfo reqFileInfo = null;
 		FileInputStream fileStream = null;
+		RandomAccessFile uploadFile = null;
 		
 		while (alive) {
 			PeerMessage peerMessage = null, messageToSend = null;
@@ -243,21 +245,53 @@ public class NFServer implements Runnable {
 				
 				messageToSend = new PeerMessage(PeerMessageOps.OPCODE_CHUNK, peerMessage.getOffset(), chunk.length, chunk);
 			} break;
+			case PeerMessageOps.OPCODE_UPLOAD:{
+				if (FileInfo.lookupHash(NanoFiles.db.getFiles(), peerMessage.getReqFileHash()) != null) {
+					messageToSend = new PeerMessage(PeerMessageOps.OPCODE_FILE_ALREADY_EXISTS);
+					break;
+				}
+				
+				messageToSend = new PeerMessage(PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED);
+			} break;
+			case PeerMessageOps.OPCODE_FILENAME_TO_SAVE:{
+				try {
+					uploadFile = new RandomAccessFile(NanoFiles.sharedDirname +"/"+ peerMessage.getFileName(), "rw");
+				} catch (FileNotFoundException e) {
+					messageToSend = new PeerMessage(PeerMessageOps.OPCODE_FILE_NOT_FOUND);
+					break;
+				}
+				messageToSend = new PeerMessage(PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED);
+			} break;
+			case PeerMessageOps.OPCODE_CHUNK:{
+				try {
+					uploadFile.seek(peerMessage.getOffset());
+					uploadFile.write(peerMessage.getChunkData());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} break;
+			case PeerMessageOps.OPCODE_STOP:{
+				try {
+					uploadFile.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				return;
+			}
 			}
 			
 			
-			
-			System.out.println("Enviando " + PeerMessageOps.opcodeToOperation(messageToSend.getOpcode()));
-			try {
-				messageToSend.writeMessageToOutputStream(dos);
-			} catch (IOException e) {
-				System.out.println("Unable to send message - terminate connection");
+			if (messageToSend != null) {
+				System.out.println("Enviando " + PeerMessageOps.opcodeToOperation(messageToSend.getOpcode()));
+				try {
+					messageToSend.writeMessageToOutputStream(dos);
+				} catch (IOException e) {
+					System.out.println("Unable to send message - terminate connection");
+				}
 			}
 		}
 		try {
 			fileStream.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		} catch (IOException e) {}
 	}
 }

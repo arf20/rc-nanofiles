@@ -61,4 +61,10 @@ public class NFConnector {
 	public PeerMessage receiveMessage() throws IOException {
 		return PeerMessage.readMessageFromInputStream(dis);
 	}
+	
+	public void close() {
+		try {
+			socket.close();
+		} catch (IOException e) {}
+	}
 }

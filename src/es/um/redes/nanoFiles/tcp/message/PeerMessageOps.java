@@ -16,11 +16,15 @@ public class PeerMessageOps {
 	public static final byte OPCODE_FILEREQUEST = 0x01;
 	public static final byte OPCODE_CHUNKREQUEST = 0x02;
 	public static final byte OPCODE_STOP = 0x03;
+	public static final byte OPCODE_UPLOAD = 0x04;
+	public static final byte OPCODE_FILENAME_TO_SAVE = 0x05;
 	
 	public static final byte OPCODE_FILEREQUEST_ACCEPTED = 0x11;
 	public static final byte OPCODE_FILE_NOT_FOUND = 0x12;
 	public static final byte OPCODE_CHUNK = 0x13;
 	public static final byte OPCODE_CHUNKREQUEST_OUTOFRANGE = 0x14;
+	public static final byte OPCODE_FILE_ALREADY_EXISTS = 0x15;
+
 
 
 	/*
@@ -33,10 +37,13 @@ public class PeerMessageOps {
 		OPCODE_FILEREQUEST,
 		OPCODE_CHUNKREQUEST,
 		OPCODE_STOP,
+		OPCODE_UPLOAD,
+		OPCODE_FILENAME_TO_SAVE,
 		OPCODE_FILEREQUEST_ACCEPTED,
 		OPCODE_FILE_NOT_FOUND,
 		OPCODE_CHUNK,
-		OPCODE_CHUNKREQUEST_OUTOFRANGE
+		OPCODE_CHUNKREQUEST_OUTOFRANGE,
+		OPCODE_FILE_ALREADY_EXISTS
 	};
 	
 	private static final String[] _valid_operations_str = {
@@ -44,10 +51,13 @@ public class PeerMessageOps {
 		"FILEREQUEST",
 		"CHUNKREQUEST",
 		"STOP",
+		"UPLOAD",
+		"FILENAME_TO_SAVE",
 		"FILEREQUEST_ACCEPTED",
 		"FILE_NOT_FOUND",
 		"CHUNK",
-		"CHUNKREQUEST_OUTOFRANGE"
+		"CHUNKREQUEST_OUTOFRANGE",
+		"FILE_ALREADY_EXISTS"
 	};
 
 	private static Map<String, Byte> _operation_to_opcode;

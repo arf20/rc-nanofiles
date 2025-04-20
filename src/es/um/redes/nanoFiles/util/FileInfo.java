@@ -136,6 +136,11 @@ public class FileInfo {
 		String needle = filenameSubstr.toLowerCase();
 		Vector<FileInfo> matchingFiles = new Vector<FileInfo>();
 		for (int i = 0; i < files.length; i++) {
+			// marco_sang: modicado para reconocer las coincidencias exactas.
+			if (files[i].fileName.toLowerCase().equals(needle)) {
+				matchingFiles.add(files[i]);
+				break;
+			}
 			if (files[i].fileName.toLowerCase().contains(needle)) {
 				matchingFiles.add(files[i]);
 			}

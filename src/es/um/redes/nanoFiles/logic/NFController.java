@@ -18,6 +18,7 @@ public class NFController {
 	 * del autómata del cliente de directorio.
 	 */
 	private static final byte ONLINE = 1;
+	private static final byte SERVING = 2;
 
 
 	/**
@@ -104,6 +105,7 @@ public class NFController {
 		switch (currentCommand) {
 		case NFCommands.COM_MYFILES:
 			showMyLocalFiles(); // Muestra los ficheros en el directorio local compartido
+			commandSucceeded = true;
 			break;
 		case NFCommands.COM_PING:
 			/*
@@ -119,6 +121,7 @@ public class NFController {
 			 * por pantalla (método getAndPrintFileList)
 			 */
 			controllerDir.getAndPrintFileList();
+			commandSucceeded = true;
 			break;
 		case NFCommands.COM_SERVE:
 			/*
@@ -218,6 +221,13 @@ public class NFController {
 			commandAllowed = true;
 			break;
 		}
+		
+		case NFCommands.COM_UPLOAD:
+			commandAllowed = currentState == SERVING;
+			if(!commandAllowed)
+				System.err.println("You must run 'serve' command first.");
+			break;
+			
 		default:
 			// System.err.println("ERROR: undefined behaviour for " + currentCommand + "
 			// command!");
@@ -232,17 +242,20 @@ public class NFController {
 		 * siguiente estado y así permitir unos u otros comandos en cada caso.
 		 */
 		if (!success) {
+			System.err.println("the command has failed");
 			return;
 		}
 		switch (currentCommand) {
 			case NFCommands.COM_PING:				
 			case NFCommands.COM_FILELIST:
 			case NFCommands.COM_DOWNLOAD:
-			case NFCommands.COM_SERVE:
-			case NFCommands.COM_UPLOAD:
-				currentState = ONLINE;
+				if(currentState == OFFLINE)
+					currentState = ONLINE;
 				break;
 				
+			case NFCommands.COM_SERVE:
+				currentState = SERVING;
+				break;
 					
 		default:
 		}

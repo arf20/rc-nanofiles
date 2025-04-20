@@ -277,12 +277,12 @@ public class NFControllerLogicP2P {
 	 * @return El puerto en el que escucha el servidor, o 0 en caso de error.
 	 */
 	protected int getServerPort() {
-		int port = 0;
 		/*
 		 * TODO: Devolver el puerto de escucha de nuestro servidor de ficheros
+		 * -----------
+		 * HECHO
 		 */
-		port = fileServer.getPort();
-		return port;
+		return fileServer.getPort();
 	}
 
 	/**
@@ -296,8 +296,6 @@ public class NFControllerLogicP2P {
 		 * HECHO
 		 */
 		fileServer.terminate();
-
-
 	}
 
 	protected boolean serving() {
@@ -309,11 +307,84 @@ public class NFControllerLogicP2P {
 	}
 
 	protected boolean uploadFileToServer(FileInfo matchingFile, String uploadToServer) {
-		boolean result = false;
+		if(!uploadToServer.trim().matches("[\\w.-]+:\\d{1,5}")) {
+			System.err.println("La cadena aportada no casa con el formato \"hostname:puerto\"");
+			return false;
+		}
+		String[] serverField = uploadToServer.trim().split(":");
+		NFConnector link = null;
+		try {
+			link = new NFConnector(new InetSocketAddress(serverField[0], Integer.parseInt(serverField[1])));
+		} catch (NumberFormatException | IOException e) {
+			System.out.println("Could not contact peer " + uploadToServer);
+			return false;
+		}
+		
+		PeerMessage msgToPeer = new PeerMessage(PeerMessageOps.OPCODE_UPLOAD, matchingFile.getHash());
+		PeerMessage msgFromPeer = null;
+		try {
+			link.sendMessage(msgToPeer);
+			msgFromPeer = link.receiveMessage();
+		} catch (IOException e) {
+			System.out.println("Client died: " + link);
+			link.close(); return false;
+		}
+		
+		if(msgFromPeer.getOpcode() == PeerMessageOps.OPCODE_FILE_ALREADY_EXISTS) {
+			System.out.println("The file already exists on the remote host");
+			link.close(); return true;
+		}
+		msgToPeer = new PeerMessage(PeerMessageOps.OPCODE_FILENAME_TO_SAVE, matchingFile.getName().length(), matchingFile.getName());
+		try {
+			link.sendMessage(msgToPeer);
+			msgFromPeer = link.receiveMessage();
+		} catch (IOException e) {
+			System.out.println("Client died: " + link);
+			link.close(); return false;
+		}
+		
+		if (msgFromPeer.getOpcode() != PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED) {
+			System.err.println("The remote path is inaccessible");
+			link.close(); return false;
+		}
+		
+		//envio de datos
+		RandomAccessFile file = null;
+		try {
+			file = new RandomAccessFile(NanoFiles.sharedDirname +"/"+ matchingFile.getName(), "r");
+		} catch (FileNotFoundException e) {
+			System.err.println("Error when opening " + matchingFile.getName() + " file");
+			link.close(); return false;
+		}
+		
+		int chunks = (int)(matchingFile.getSize() / (long)CHUNK_SIZE + (matchingFile.getSize() % (long)CHUNK_SIZE == 0 ? 0 : 1));
+		
+		for (int chunk=0; chunk < chunks; chunk++) {
+			byte[] data = new byte[chunk == chunks -1 ? (int) (matchingFile.getSize() % (long)CHUNK_SIZE) : CHUNK_SIZE];
+			
+			try {
+				file.readFully(data);			
+				msgToPeer = new PeerMessage(PeerMessageOps.OPCODE_CHUNK, (long)chunk*CHUNK_SIZE, data.length, data);
+				link.sendMessage(msgToPeer);
+			} catch (IOException e) {
+				e.printStackTrace(); link.close(); return false;
+			}
+		}
+		
+		try {
+			link.sendMessage(new PeerMessage(PeerMessageOps.OPCODE_STOP));
+		} catch (IOException e) {
+			System.out.println("WARNING: ERROR TO CLOSE SERVER CONNECTION");
+		}
+		
+		System.out.println("Upload completed successfuly");
+		try {
+			file.close();
+		} catch (IOException e) {}
+		
+		link.close();
 
-
-
-		return result;
+		return true;
 	}
 
 }

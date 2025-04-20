@@ -41,6 +41,12 @@ public class PeerMessage {
 		this.reqFileHash = hexStringToBytes(reqFileHash);
 	}
 	
+	public PeerMessage(byte op, int sizeName, String fileName) {
+		opcode = op;
+		size = sizeName;
+		reqFileHash = fileName.getBytes();
+	}
+	
 	public PeerMessage(byte op, long offset, int size, byte[] chunkData) {
 		opcode = op;
 		this.offset = offset;
@@ -65,10 +71,17 @@ public class PeerMessage {
 	}
 	
 	public String getReqFileHash() {
-		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) {
+		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST && opcode != PeerMessageOps.OPCODE_UPLOAD && opcode != PeerMessageOps.OPCODE_FILENAME_TO_SAVE) {
 			throw new StructureViolationException("This instance does not support getFileName. Check \'getOpcode() == PeerMessageOps.OPCODE_FILEREQUEST\' first");
 		}
 		return bytesToHex(reqFileHash);
+	}
+	
+	public String getFileName() {
+		if (opcode != PeerMessageOps.OPCODE_FILENAME_TO_SAVE) {
+			throw new StructureViolationException("This instance does not support getFileName. Check \'getOpcode() == PeerMessageOps.OPCODE_FILEREQUEST\' first");
+		}
+		return new String(reqFileHash);
 	}
 	
 	private void setReqFileHash(String reqFileHash) {
@@ -78,7 +91,7 @@ public class PeerMessage {
 	}
 	
 	private void setReqFileHash(byte[] reqFileHash) {
-		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST) 
+		if (opcode != PeerMessageOps.OPCODE_FILEREQUEST && opcode != PeerMessageOps.OPCODE_UPLOAD && opcode != PeerMessageOps.OPCODE_FILENAME_TO_SAVE) 
 			throw new StructureViolationException("This instance does not have the field fileName");
 		this.reqFileHash = reqFileHash;
 	}
@@ -150,18 +163,28 @@ public class PeerMessage {
 		byte opcode = dis.readByte();
 		message.opcode = opcode;
 		switch (opcode) {
-			case PeerMessageOps.OPCODE_FILEREQUEST: {
+			case PeerMessageOps.OPCODE_UPLOAD:
+			case PeerMessageOps.OPCODE_FILEREQUEST: 
 				message.setReqFileHash(dis.readNBytes(20));
-			} break;
-			case PeerMessageOps.OPCODE_CHUNKREQUEST: {
+				break;
+				
+			case PeerMessageOps.OPCODE_CHUNKREQUEST:
 				message.setOffset(dis.readLong());
 				message.setSize(dis.readInt());
-			} break;
-			case PeerMessageOps.OPCODE_CHUNK: {
+				break;
+				
+			case PeerMessageOps.OPCODE_CHUNK: 
 				message.setOffset(dis.readLong());
 				message.setSize(dis.readInt());
 				message.setChunkData(dis.readNBytes(message.getSize()));
-			} break;
+				break;
+			
+			case PeerMessageOps.OPCODE_FILENAME_TO_SAVE:
+				message.setSize(dis.readInt());
+				message.setReqFileHash(dis.readNBytes(message.getSize()));
+				break;
+				
+			case PeerMessageOps.OPCODE_FILE_ALREADY_EXISTS:
 			case PeerMessageOps.OPCODE_STOP:
 			case PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED:
 			case PeerMessageOps.OPCODE_FILE_NOT_FOUND:
@@ -185,6 +208,7 @@ public class PeerMessage {
 
 		dos.writeByte(opcode);
 		switch (opcode) {
+			case PeerMessageOps.OPCODE_UPLOAD:
 			case PeerMessageOps.OPCODE_FILEREQUEST: {
 				dos.write(reqFileHash);
 			} break;
@@ -197,10 +221,15 @@ public class PeerMessage {
 				dos.writeLong(offset);
 				dos.writeInt(size);
 			} break;
+			case PeerMessageOps.OPCODE_FILENAME_TO_SAVE:
+				dos.writeInt(size);
+				dos.write(reqFileHash);
+				break;
 			case PeerMessageOps.OPCODE_STOP:
 			case PeerMessageOps.OPCODE_FILEREQUEST_ACCEPTED:
 			case PeerMessageOps.OPCODE_FILE_NOT_FOUND:
 			case PeerMessageOps.OPCODE_CHUNKREQUEST_OUTOFRANGE:
+			case PeerMessageOps.OPCODE_FILE_ALREADY_EXISTS:
 				break;
 		default:
 			System.err.println("PeerMessage.writeMessageToOutputStream found unexpected message opcode " + opcode);

@@ -144,7 +144,7 @@ Requests availability of file to be downloaded
  - Answer: 'accepted' or 'file not found error'
 
 ```
-0        1        3        4        5		  byte
+0        1        2        3        4		  byte
 +--------+
 | opcode |
 +-------------------------------------------+
@@ -164,7 +164,7 @@ Asks server to send a chunk
  - Fields: 
    - offset[8]: Starting byte of chunk
    - size[4]: Size of chunk
- - Answer: 'chunk'
+ - Answer: 'chunk' or 'Bad chunk request error'
 
 ```
 0        1       2       3       4       5       6       7       8         byte
@@ -190,7 +190,54 @@ Terminates current file request
 +--------+
 ```
 
-### Server requests
+#### Upload request
+
+Ask a server for upload a file
+
+ - Opcode: 0x04
+ - Fields: 
+   - hash[20]: Filename's hash
+ - Answer: 'accepted', or 'File already exists'
+
+```
+0        1        2        3        4		  byte
++--------+
+| opcode |
++-------------------------------------------+
+| hash                                      |
+|                                           |
+|                                           |
+|                                           |
++-------------------------------------------+
+
+```
+
+#### File name to save
+
+Give to serve a name to save a file
+
+This message is sent if upload request was accepted perviously
+
+ - Opcode: 0x05
+ - Fields: 
+   - length[4]: lenght of name in bytes
+   - name[length]
+ - Answer: 'accepted', or 'file not found error'
+
+```
+0        1        2        3        4		  byte
++--------+----------------------------------+
+| opcode | lenght                           | 
++-------------------------------------------+
+| name                                      |
+|                                           |
+|                                           |
+|                                           |
++-------------------------------------------+
+
+```
+
+### Server responses
 
 Opcode in 0x1X
 
@@ -200,7 +247,7 @@ File is available to download via chunk requests
 
  - Opcode 0x11
  - Fields: None
- - Answer to: 'file request'
+ - Answer to: 'file request' and 'upload request'
 
 ```
 0               
@@ -215,7 +262,7 @@ File is unavailable or not found
 
  - Opcode: 0x12
  - Fields: None
- - Answer to: 'file request'
+ - Answer to: 'file request' and 'upload request'
 
 ```
 0               
@@ -229,17 +276,20 @@ File is unavailable or not found
 Data chunk of file
 
  - Opcode: 0x13
- - Fields: 
+ - Fields:
+   - offset[8]: byte of file where chunk begins
    - size[4]: Size of chunk
    - data[size]: 
  - Answer to: 'chunk request'
 
 ```
-0        1       2       3       4       byte
-+--------+------------------------------+
-| opcode | size                         |
-+--------+------------------------------+
-| data ...
+0        1       2       3       4       5       6       7       8       byte
++--------+---------------------------------------------------------------+
+| opcode |         offset                                                |
++--------+---------------------------------------------------------------+
+| size   |                                                               |
++--------+         data...                                               |
+|                                                                        |
 |
 ```
 
@@ -250,6 +300,21 @@ File is unavailable or not found
  - Opcode: 0x14
  - Fields: None
  - Answer to: 'chunk request'
+
+```
+0               
++--------+
+| opcode |
++--------+
+```
+
+#### File already exists
+
+File is unavailable or not found
+
+ - Opcode: 0x15
+ - Fields: None
+ - Answer to: 'upload request'
 
 ```
 0               
