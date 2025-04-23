@@ -229,6 +229,55 @@ Termina la descarga actual de un fichero.
 +--------+
 .!fig
 
+.subsubsection Upload request
+
+Solicita a un servidor la subida de un archivo.
+
+.align left
+.itemize
+.item Código: 0x04
+.item Campos: 
+.item - hash[20]: firma hash del fichero.
+.item - Respuestas: 'accepted' o 'File already exists'.
+
+.fig
+0        1        2        3        4		  byte
++--------+
+| opcode |
++-------------------------------------------+
+| hash                                      |
+|                                           |
+|                                           |
+|                                           |
++-------------------------------------------+
+.!fig
+
+.subsubsection File name to save
+
+Da al servidor un nombre con el que guardar un archivo.
+
+Este mensaje es enviado solo si el mensaje upload request fue aceptado previamente.
+
+.align left
+.itemize
+.item Código: 0x05
+.item Campos: 
+.item - length[4]: lenght of name in bytes
+.item - name[length]
+.item - Respuestas: 'accepted' o 'file not found error'
+
+.fig
+0        1        2        3        4		  byte
++--------+----------------------------------+
+| opcode | lenght                           | 
++-------------------------------------------+
+| name                                      |
+|                                           |
+|                                           |
+|                                           |
++-------------------------------------------+
+.!fig
+
 .subsection Mensajes de servidor
 
 .subsubsection Accepted
@@ -306,7 +355,40 @@ Fichero no disponible o no encontrado.
 +--------+
 .!fig
 
+.subsubsection File already exists
+
+El fichero ya existe en este peer.
+
+.align left
+.itemize
+.item Código: 0x15
+.item Campos: ninguno
+.item Respuesta a: 'upload request'
+
+.fig
+0               
++--------+
+| opcode |
++--------+
+.!fig
+
 .chapter Mejoras
+
+.section Quit
+
+El se mejoró el comportamiento del comando quit para que al ejecutarse se actualice en el directorio la información relativa al peer que hace el quit: se da de baja a dicho peer junto con los ficheros que exclusivamente este compartía.
+
+.section Serve con puerto efimero
+
+Originalmente el comando serve montaba un servidor escuchando en el puerto 1000. Con esta mejora el servidor queda escuchando en un puerto aleatorio que se registra en el directorio.
+
+.section Filelist
+
+La version basica de filelist solo muestra información basica de los ficheros registrados en el servidor (nombre, firma hash, tamaño). Con está ampliación también se muestra el listado de peers (direciones) que disponen de dichos ficheros.
+
+.section Upload
+
+Comando que permite a un servidor enviar un documento a otro servidor siempre y cuando este último no lo tenga ya. Para poder ejecutar este comando el peer debe darse de alta como servidor en el directorio previamente.
 
 .chapter Capturas de pantalla de Wireshark
 
@@ -322,7 +404,7 @@ Java era un lenguaje ampliamente usado para escribir software nuevo... hace 15 a
 
 Especificamente, Java es una opción terrible para este caso porque es un obstaculo para el objetivo del proyecto: aprender a escribir aplicaciones con sockets.
 
-Java, siendo OOP puro, está sujeto a limitaciones que le impiden representar fielmente realmente como funcionan las cosas. La API tiene una serie de clases para representar datagramas UDP por ejemplo: los datagramas existen, pero la clase DatagramPacket es algo muy abstracto que en ningún momento representa el paquete real, sino juntar datos en una unidad porque sí. Java no sabe lo que es un datagrama realmente.
+Java, siendo OOP puro, está sujeto a limitaciones que le impiden representar fielmente como funcionan las cosas. La API tiene una serie de clases para representar datagramas UDP por ejemplo: los datagramas existen, pero la clase DatagramPacket es algo muy abstracto que en ningún momento representa el paquete real, sino juntar datos en una unidad porque sí. Java no sabe lo que es un datagrama realmente.
 
 Que queremos enviar un cacho de datos a varias direcciones: tenemos que construir un DatagramPacket para cada vez, con los mismos datos, pero con una dirección de destino distinta. Java está lleno de estas construcciones, copias copias y copias y destrucciones completamente innecesarias.
 
@@ -332,8 +414,8 @@ Esta API POSIX, tenemos unos datos, y los enviamos a una direccion, en una sola 
 
 .itemize
 .item Java no esta diseñado para trabajar con datos binarios facilmente, teniendo que serializar y deserializar todo, y ni si quiera soporta tipos enteros sin signo explicitamente.
-.item Aparentemente no hay forma de coger un trozo de un archivo y mandarlo por un socket sin copiar el bufer, lenguaje inutilizable, como se permite esto en 2025?
-.item Java es muy inflexible en cuanto a operaciones no bloqueantes. POSIX tiene la syscall poll() para monitorear una lista de sockets en un solo thread, y Java tiene algo parecido pero crucialmente, en C puedes responder con llamadas bloqueantes sabiendo que no se van a bloquear, mientras que en Java solo puedes usar cosas no bloqueantes sobre un canal con select, lo cual es pedantico y molesto.
+.item Aparentemente no hay forma de coger un trozo de un archivo y mandarlo por un socket sin copiar el bufer, lenguaje inutilizable, ¿Como se permite esto en 2025?
+.item Java es muy inflexible en cuanto a operaciones no bloqueantes. POSIX tiene la syscall poll() para monitorear una lista de sockets en un solo thread, y Java tiene algo parecido pero crucialmente. En C puedes responder con llamadas bloqueantes sabiendo que no se van a bloquear, mientras que en Java solo puedes usar cosas no bloqueantes sobre un canal con select, lo cual es pedantico y molesto.
 
 .section Problemas con el código
 
@@ -346,7 +428,7 @@ Esta API POSIX, tenemos unos datos, y los enviamos a una direccion, en una sola 
 .item Inconsistencias de patrones
 .item Innecesariamente complicado
 .item Verbosidad (mas culpa de Java supongo)
-.item Exceso de comentarios, y además confusos
+.item Exceso de comentarios y además confusos
 .item Capa sobre capa sobre capa de abstracciones: paso de datos entre clases que no hacen nada innecesariamente
 .item Enumeraciones, arrays, estructuras innecesarias, como los comandos.
 .align justify
@@ -355,9 +437,9 @@ Esta API POSIX, tenemos unos datos, y los enviamos a una direccion, en una sola 
 
 Nos dan el proyecto para Eclipse, usando el build system de eclipse. Con lo cual nos obligan a usar Eclipse. Los IDEs son un obstaculo para el aprendizaje. Tienen una cantidad de ruido visual increibles, son enormemente complicados de usar y suelen tener bugs y molestias. La alternativa es "convertirlo a gradle" y usar gradle que es otro build system terrible y innecesariamente complejo.
 
-.itemize Ejemplo de TODO ambiguo: En cual se crea el hilo?
+.itemize Ejemplo de TODO ambiguo: ¿En cual se crea el hilo?
 .item NFControllerP2P: "Arrancar servidor en segundo plano creando un nuevo hilo"
-.item NFServer: "Añadir métodos a esta clase para: 1) Arrancar el servidor en un hilo nuevo que se ejecutará en segundo plano" La verdadera respuesta es que hay que fijarse que NFServer implementa Runnable, con lo cual es esta clase la que hay que pasar a un Thread, y run() el metodo que ejecuta el Thread, siendo este declarado efectivamente en NFControllerP2P.
+.item NFServer: "Añadir métodos a esta clase para: 1) Arrancar el servidor en un hilo nuevo que se ejecutará en segundo plano". La verdadera respuesta es que hay que fijarse que NFServer implementa Runnable, con lo cual es esta clase la que hay que pasar a un Thread, y run() el metodo que ejecuta el Thread, siendo este declarado efectivamente en NFControllerP2P.
 
 .pagebreak
 
@@ -365,18 +447,18 @@ Nos dan el proyecto para Eclipse, usando el build system de eclipse. Con lo cual
 .item NFServer implements Runnable: "Añadir métodos a esta clase para: [...] 2) Detener el servidor (stopserver)" Como vas a parar el servidor dentro del mismo thread, si el thread está bloqueado en accept()? Si no se usan sockets no bloqueantes (no los hemos visto) la unica forma de detener el thread es terminandolo a la fuerza desde el thread Main.
 
 .itemize Ejemplo de TODO directamente incorrecto:
-.item NFServer.serveFilesToClient: "Los métodos lookupHashSubstring y lookupFilenameSubstring de la clase FileInfo" lookupHashSubstring no existe en ningún sitio. Además, estas utilidades deberían estar en la base de datos FileDatabase, literalmente son queries a la base de datos. Sin embargo, lookupFilePath sí que está en la FileDatabase, por qué? Es como si se hubieran puesto los metodos de forma aparentemente aleatoria por el codigo. Nota: esta función tampoco no sirve un proposito porque en el servidor se necesita el resto de campos del objeto FileInfo, no solo su path. Debería de haber un solo metodo para buscar en la db por hash o por nombre y devolver el FileInfo, solo que por alguna razón divinamente desconocida, a FileInfo le falta el getter del path. (Nota: solo tiene sentido guardar el path entero en FileInfo, ya que el nombre es parte del path y por tanto redundante)
+.item NFServer.serveFilesToClient: "Los métodos lookupHashSubstring y lookupFilenameSubstring de la clase FileInfo" lookupHashSubstring no existe en ningún sitio. Además, estas utilidades deberían estar en la base de datos FileDatabase, literalmente son queries a la base de datos. Sin embargo, lookupFilePath sí que está en la FileDatabase, ¿por qué? Es como si se hubieran puesto los metodos de forma aparentemente aleatoria por el codigo. Nota: esta función tampoco sirve a un proposito porque en el servidor se necesita el resto de campos del objeto FileInfo, no solo su path. Debería de haber un solo metodo para buscar en la db por hash o por nombre y devolver el FileInfo, solo que por alguna razón divinamente desconocida, a FileInfo le falta el getter del path. (Nota: solo tiene sentido guardar el path entero en FileInfo, ya que el nombre es parte del path y por tanto redundante)
 
 
 .itemize FileDatabase es AdHoc, solo sirve como base de datos del cliente:
 .item escanea un directorio
 .item no puede guardar peers para usarse en NFDirectoryServer
 
-DirMessage intenta representar todos los tipos de mensajes, haciendo la implementación terrible: encima de que estamos en un lenguaje OOP esto deberia ser resuelto por herencia para cada tipo de mensaje
+DirMessage intenta representar todos los tipos de mensajes, haciendo la implementación terrible: encima de que estamos en un lenguaje OOP esto deberia ser resuelto por herencia para cada tipo de mensaje.
 
-NFDirectoryServer termina inmediatamente al recibir un mensaje mal formado, esto es una vulnerabilidad de Denial of Service
+NFDirectoryServer termina inmediatamente al recibir un mensaje mal formado, esto es una vulnerabilidad de Denial of Service.
 
-NanoFiles (cliente) termina inmediatamente en cuanto un comando falla. Cuando haces un ping y el directorio no responde, termina, en vez de dejarte volver a intentar
+NanoFiles (cliente) termina inmediatamente en cuanto un comando falla. Cuando haces un ping y el directorio no responde, termina, en vez de dejarte volver a intentar.
 
 NFController.processCommand()[COM_DOWNLOAD]: A dos metodos aislados se le pasa la misma información inutil (una substring del nombre del archivo). Sin modificar estos, los dos metodos necesitan el hash del archivo -> tendrian que hacer la misma request al directorio para ver a que hash se corresponde (información util) para poder preguntar por A. los servidores y B. a los peers, los chunks del archivo. Diseño fundamentalmente defectuoso. Lo primero que se debería hacer es obtener la información util, el hash, que es con lo que se debe trabajar.
 
