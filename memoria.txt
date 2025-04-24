@@ -43,20 +43,30 @@ TABLE OF CONTENTS
             2.2.1.1. File request ............................................ 5
             2.2.1.2. Chunk request ........................................... 5
             2.2.1.3. Stop download ........................................... 5
-        2.2.2. Mensajes de servidor .......................................... 6
-            2.2.2.1. Accepted ................................................ 6
-            2.2.2.2. Bad file request error .................................. 6
-            2.2.2.3. Chunk ................................................... 6
+            2.2.1.4. Upload request .......................................... 6
+            2.2.1.5. File name to save ....................................... 6
+        2.2.2. Mensajes de servidor .......................................... 7
+            2.2.2.1. Accepted ................................................ 7
+            2.2.2.2. Bad file request error .................................. 7
+            2.2.2.3. Chunk ................................................... 7
             2.2.2.4. Bad chunk request error ................................. 7
-3. Mejoras ................................................................... 7
-4. Capturas de pantalla de Wireshark ......................................... 7
-5. Conclusiones .............................................................. 7
-6. Valoracion personal ....................................................... 7
-    6.1. Por qué el proyecto base de Nanofiles es malo: Un analisis .......... 7
-        6.1.1. Elección del lenguaje ......................................... 7
-    6.2. Problemas con el código ............................................. 8
-        6.2.1. General ....................................................... 8
-        6.2.2. Especifico .................................................... 8
+            2.2.2.5. File already exists ..................................... 8
+3. Mejoras ................................................................... 8
+    3.1. Quit ................................................................ 8
+    3.2. Serve con puerto efimero ............................................ 8
+    3.3. Filelist ............................................................ 8
+    3.4. Upload .............................................................. 8
+4. Capturas de pantalla de Wireshark ......................................... 8
+5. Conclusiones .............................................................. 8
+    5.1. Valoracion personal ................................................. 9
+        5.1.1. Por qué el proyecto base de Nanofiles es perjudicial: Un analisis  9
+            5.1.1.1. Elección del lenguaje ................................... 9
+        5.1.2. Problemas con el protocolo pedido ............................ 10
+            5.1.2.1. Directorio ............................................. 10
+            5.1.2.2. Transferencia de ficheros .............................. 10
+        5.1.3. Problemas con el código dado ................................. 11
+            5.1.3.1. General ................................................ 11
+            5.1.3.2. Especifico ............................................. 11
 
 MEMORIA RC                         NanoFiles                              PAGE 3
 
@@ -247,6 +257,51 @@ TCP.
     | opcode |
     +--------+
 
+2.2.1.4. Upload request
+
+    Solicita a un servidor la subida de un archivo.
+
+  - Código: 0x04
+  - Campos:
+  - - hash[20]: firma hash del fichero.
+  - - Respuestas: 'accepted' o 'File already exists'.
+
+    0        1        2        3        4        byte
+    +--------+
+    | opcode |
+    +-------------------------------------------+
+    | hash                                      |
+    |                                           |
+    |                                           |
+    |                                           |
+    +-------------------------------------------+
+
+2.2.1.5. File name to save
+
+    Da al servidor un nombre con el que guardar un archivo.
+
+    Este mensaje es enviado solo si el mensaje upload request fue aceptado
+previamente.
+
+  - Código: 0x05
+  - Campos:
+  - - length[4]: lenght of name in bytes
+  - - name[length]
+  - Respuestas: 'accepted' o 'file not found error'
+
+    0        1        2        3        4        byte
+    +--------+----------------------------------+
+    | opcode | length                           | 
+    +-------------------------------------------+
+    | name                                      |
+    |                                           |
+    |                                           |
+    |                                           |
+    +-------------------------------------------+
+
+
+MEMORIA RC                         NanoFiles                              PAGE 7
+
 2.2.2. Mensajes de servidor
 
 2.2.2.1. Accepted
@@ -293,9 +348,6 @@ requests.
     | data ...
     |
 
-
-MEMORIA RC                         NanoFiles                              PAGE 7
-
 2.2.2.4. Bad chunk request error
 
     Fichero no disponible o no encontrado.
@@ -309,71 +361,199 @@ requests.
     | opcode |
     +--------+
 
-3. Mejoras
-
-4. Capturas de pantalla de Wireshark
-
-5. Conclusiones
-
-6. Valoracion personal
-
-6.1. Por qué el proyecto base de Nanofiles es malo: Un analisis
-
-6.1.1. Elección del lenguaje
-
-    Java era un lenguaje ampliamente  usado para escribir software nuevo... hace
-15 años.  Ahora se considera como  mala opción, como deuda  tecnica (por razones
-fuera del alcance de este documento) no se escribe nuevo software en el, solo se
-mantiene    el    antiguo   porque    es    mas    barato   que    reescribirlo.
-
-    Especificamente, Java  es una opción  terrible para  este caso porque  es un
-obstaculo para  el objetivo del  proyecto: aprender a escribir  aplicaciones con
-sockets.                                                                        
-
-    Java, siendo OOP puro, está sujeto a limitaciones que le impiden representar
-fielmente realmente como  funcionan las cosas. La API tiene  una serie de clases
-para representar  datagramas UDP  por ejemplo: los  datagramas existen,  pero la
-clase DatagramPacket es  algo muy abstracto que en ningún  momento representa el
-paquete real, sino juntar datos en una unidad  porque sí. Java no sabe lo que es
-un                              datagrama                             realmente.
-
-    Que queremos  enviar un  cacho de  datos a  varias direcciones:  tenemos que
-construir un  DatagramPacket para cada vez,  con los mismos datos,  pero con una
-dirección de destino  distinta. Java está lleno de  estas construcciones, copias
-copias     y    copias     y    destrucciones     completamente    innecesarias.
-
-    Cada día  nos alejamos mas de  C: La API  de sockets de Java  está demasiado
-alejada  de la  verdad: la  API  de sockets  POSIX.  Esa que  todos los  sitemas
-operativos  reales implementan  de  una  forma u  otra  desde  BSD 4.2  (incluso
-Windows), que es lo que la JVM realmente  usa por debajo para hablar con la red.
-
-    Esta API POSIX, tenemos  unos datos, y los enviamos a  una direccion, en una
-sola llamada, y sin ningún tipo de construcción o copia de nada. Es el kernel el
-que coje el búfer de memoria, construye el paquete UDP, lo encapsula en un frame
-Ethernet  y  se  lo  pasa  al  driver  de  la  tarjeta  de  red  (generalmente).
-
 
 MEMORIA RC                         NanoFiles                              PAGE 8
 
-  - Java no esta diseñado para  trabajar con datos binarios facilmente, teniendo
+2.2.2.5. File already exists
+
+    El fichero ya existe en este peer.
+
+  - Código: 0x15
+  - Campos: ninguno
+  - Respuesta a: 'upload request'
+
+    0               
+    +--------+
+    | opcode |
+    +--------+
+
+3. Mejoras
+
+3.1. Quit
+
+    El se mejoró el comportamiento del comando quit para que al ejecutarse se
+actualice en el directorio la información relativa al peer que hace el quit: se
+da de baja a dicho peer junto con los ficheros que exclusivamente este
+compartía.
+
+3.2. Serve con puerto efimero
+
+    Originalmente el comando serve montaba un servidor escuchando en el puerto
+10000. Con esta mejora el servidor queda escuchando en un puerto aleatorio que
+se registra en el directorio.
+
+3.3. Filelist
+
+    La version basica de filelist solo muestra información basica de los
+ficheros registrados en el servidor (nombre, firma hash, tamaño). Con está
+ampliación también se muestra el listado de peers (direciones) que disponen de
+dichos ficheros.
+
+3.4. Upload
+
+    Comando que permite a un servidor enviar un documento a otro servidor
+siempre y cuando este último no lo tenga ya. Para poder ejecutar este comando el
+peer debe darse de alta como servidor en el directorio previamente.
+
+4. Capturas de pantalla de Wireshark
+
+    Véase directorio de imagenes.
+
+5. Conclusiones
+
+    La compartición de archivos peer-to-peer es un gran metodo para compartir
+archivos, es extremadamente eficiente y robusta gracias a su descentralización y
+división de contenido en piezas (chunks) (siempre y cuando hayan peers) y
+permite que los operadores de los directorios se desmarquen en caso de que se
+compartan archivos cuyo contenido sea por lo que sea, legalmente gris.
+
+    Sin embargo, no todos los protocolos de compartición P2P son igual de
+buenos. En este caso se ha hecho lo que se ha podido. A continuación, una breve
+opinión sobre lo que se podría mejorar.
+
+
+MEMORIA RC                         NanoFiles                              PAGE 9
+
+5.1. Valoracion personal
+
+5.1.1. Por qué el proyecto base de Nanofiles es perjudicial: Un analisis
+
+5.1.1.1. Elección del lenguaje
+
+    Java era un lenguaje ampliamente usado para escribir software nuevo... hace
+15 años. Ahora se considera como mala opción, como deuda tecnica (por razones
+fuera del alcance de este documento) no se escribe nuevo software en el, solo se
+mantiene el antiguo porque es mas barato que reescribirlo.
+
+    Especificamente, Java es una opción terrible para este caso porque es un
+obstaculo para el objetivo del proyecto: aprender a escribir aplicaciones con
+sockets.
+
+    Java, siendo OOP puro, está sujeto a limitaciones que le impiden representar
+fielmente como funcionan las cosas. La API tiene una serie de clases para
+representar datagramas UDP por ejemplo: los datagramas existen, pero la clase
+DatagramPacket es algo muy abstracto que en ningún momento representa el paquete
+real, sino juntar datos en una unidad porque sí. Java no sabe lo que es un
+datagrama realmente.
+
+    Que queremos enviar un cacho de datos a varias direcciones: tenemos que
+construir un DatagramPacket para cada vez, con los mismos datos, pero con una
+dirección de destino distinta. Java está lleno de estas construcciones, copias
+copias y copias y destrucciones completamente innecesarias.
+
+    Cada día nos alejamos mas de C: La API de sockets de Java está demasiado
+alejada de la verdad: la API de sockets POSIX. Esa que todos los sitemas
+operativos reales implementan de una forma u otra desde BSD 4.2 (incluso
+Windows), que es lo que la JVM realmente usa por debajo para hablar con la red.
+
+    Esta API POSIX, tenemos unos datos, y los enviamos a una direccion, en una
+sola llamada, y sin ningún tipo de construcción o copia de nada. Es el kernel el
+que coje el búfer de memoria, construye el paquete UDP, lo encapsula en un frame
+Ethernet y se lo pasa al driver de la tarjeta de red (generalmente).
+
+  - Java no esta diseñado para trabajar con datos binarios facilmente, teniendo
     que serializar y deserializar todo, y ni si quiera soporta tipos enteros sin
-    signo                                                        explicitamente.
+    signo explicitamente.
     
   - Aparentemente no hay forma de coger un trozo de un archivo y mandarlo por un
-    socket sin copiar  el bufer, lenguaje inutilizable, como se  permite esto en
-    2025?                                                                       
+    socket sin copiar el bufer, lenguaje inutilizable, ¿Como se permite esto en
+    2025?
     
-  - Java es muy  inflexible en cuanto a operaciones no  bloqueantes. POSIX tiene
-    la syscall poll() para monitorear una lista  de sockets en un solo thread, y
-    Java  tiene algo  parecido  pero  crucialmente, en  C  puedes responder  con
+  - Java es muy inflexible en cuanto a operaciones no bloqueantes. POSIX tiene
+    la syscall poll() para monitorear una lista de sockets en un solo thread, y
+    Java tiene algo parecido pero crucialmente. En C puedes responder con
     llamadas bloqueantes sabiendo que no se van a bloquear, mientras que en Java
-    solo puedes usar cosas no bloqueantes sobre  un canal con select, lo cual es
-    pedantico                             y                             molesto.
+    solo puedes usar cosas no bloqueantes sobre un canal con select, lo cual es
+    pedantico y molesto.
     
 
-6.2. Problemas con el código
 
-6.2.1. General
+MEMORIA RC                         NanoFiles                             PAGE 10
+
+5.1.2. Problemas con el protocolo pedido
+
+    En respuesta a la descripción dada de los mensajes: Argumento detrás del
+protocolo aquí definido
+
+5.1.2.1. Directorio
+
+    El protocolo que se describe es mas innecesariamente complicado de lo que
+podría ser: Es mucho mas eficiente enviar toda la información del directorio en
+un solo mensaje, incluyendo nombres, hashes, tamaños y peers de cada archivo, ya
+que en la interfaz de usuario del programa, se va a mostrar todos los ficheros
+disponibles y se podrán bajar cualquiera de ellos.
+
+    Y como el cliente ya tiene toda la información de un golpe, no necesita
+enviar ningún mensaje para pedir la lista de peers; pero si aún asi quisieramos
+hacerlo, no debería hacerse en el protocolo mediante una subcadena de longitud
+variable. Esto da lugar a errores y ambigüedades que se pueden evitar usando
+directamente el hash SHA1 en binario que ya conoce el cliente para referirse a
+un archivo concreto y especifico.
+
+    Aparte, opino que al ser un protocolo textual, sería infinitamente mas
+estandar, sencillo y escalable si este protocolo fuese JSON sobre HTTP, haciendo
+del directorio una API REST, parecido a bittorrent.
+
+5.1.2.2. Transferencia de ficheros
+
+    Antes de empezar, remarcar que todo el punto de partir los archivos en
+piezas (chunks) es de poder obtener las piezas de distintos peers, idealmente de
+forma randomizada y uniforme, de manera que si un peer no tiene una pieza o
+falla al enviarla, no cueste demasiado pedirsela a otro peer.
+
+    Con ese fin, el cliente debe tener el control granular de poder pedir piezas
+concretas. En este protocolo se admiten pedir pieas de distintos tamaños ya que
+se representa el offset y el tamaño, pero como mejora, la sesión debería fijar
+un tamaño, y en las comunicaciones subsecuentes indicarse indices de piezas.
+
+    En el establecimiento de la sesión, al igual que al obtener los peers del
+directorio, es propenso a errores indicar una subcadena, otra vez. Mejor enviar
+el hash exacto en binario, y además asi se evita tener que tener un campo de
+longitud, ya que el mensaje sería de longitud fija (la longitud se infiere del
+tipo de mensaje). Solo habría dos respuestas posibles, hash encontrado o no, no
+hay lugar a la ambigüedad en este protocolo.
+
+    Se menciona un mensaje del cliente con el hash del archivo, y que sección
+del archivo descargar mediante dos offsets. Teniendo en cuenta lo anterior, es
+redundante, y lo segundo se ha exmplicado anteriormente.
+
+    Se podría llegar a pensar que el cliente al tener que pedir cada chunk
+individualmente daría lugar a un overhead de protocolo, pero esto se mitiga muy
+eficazmente enviando un numero de requests de piezas en el aire (en la ventana
+de recepción, o en el stack de aplicación del servidor), o lo que se llama
+pipelining de requests, de forma que el servidor las sirva lo mas rapido que
+pueda.
+
+
+MEMORIA RC                         NanoFiles                             PAGE 11
+
+    También se habla de que los chunks sean de 1KiB de tamaño. Esto es
+absurdamente pequeño ya que simplemente el header representaría aproximadamente
+el 1% del trafico de chunks, nada eficiente para archivos grandes o pequeños. En
+bittorrent se recomiendan mensajes de 16KiB para piezas de 2MiB. Aquí se usan
+chunks de 2MiB directamente porque no hay concepto de bloque separado de pieza.
+Así el kernel trabaja más (eficiencia).
+
+    Por último, no conseguimos entender la utilidad de obtener el hash del
+archivo pedido por el cliente al servidor tras establecer la sesión, ya que en
+el propio establecmimento uno de los parametros es el mismo hash. Redundante.
+
+    Como mejora al protocolo se podrían introducir conceptos de control de flujo
+de bittorrent, como condición de choking y interest.
+
+5.1.3. Problemas con el código dado
+
+5.1.3.1. General
 
   - Legibilidad horrible
 
@@ -385,7 +565,7 @@ Ethernet  y  se  lo  pasa  al  driver  de  la  tarjeta  de  red  (generalmente).
 
   - Verbosidad (mas culpa de Java supongo)
 
-  - Exceso de comentarios, y además confusos
+  - Exceso de comentarios y además confusos
 
   - Capa sobre capa sobre capa de abstracciones: paso de datos entre clases que
     no hacen nada innecesariamente
@@ -393,7 +573,7 @@ Ethernet  y  se  lo  pasa  al  driver  de  la  tarjeta  de  red  (generalmente).
   - Enumeraciones, arrays, estructuras innecesarias, como los comandos.
 
 
-6.2.2. Especifico
+5.1.3.2. Especifico
 
     Nos dan el proyecto para Eclipse, usando  el build system de eclipse. Con lo
 cual nos obligan a usar Eclipse. Los  IDEs son un obstaculo para el aprendizaje.
@@ -401,18 +581,18 @@ Tienen una cantidad  de ruido visual increibles, son  enormemente complicados de
 usar y suelen tener bugs y molestias. La alternativa es "convertirlo a gradle" y
 usar  gradle que  es otro  build  system terrible  y innecesariamente  complejo.
 
-Ejemplo de TODO ambiguo: En cual se crea el hilo?
+Ejemplo de TODO ambiguo: ¿En cual se crea el hilo?
   - NFControllerP2P: "Arrancar servidor en segundo  plano creando un nuevo hilo"
 
   - NFServer: "Añadir métodos  a esta clase para: 1) Arrancar  el servidor en un
-    hilo nuevo que se ejecutará en  segundo plano" La verdadera respuesta es que
+    hilo nuevo que se ejecutará en segundo plano". La verdadera respuesta es que
     hay que fijarse que NFServer implementa  Runnable, con lo cual es esta clase
     la que hay que  pasar a un Thread, y run() el metodo  que ejecuta el Thread,
     siendo     este     declarado      efectivamente     en     NFControllerP2P.
     
 
 
-MEMORIA RC                         NanoFiles                              PAGE 9
+MEMORIA RC                         NanoFiles                             PAGE 12
 
 Ejemplo de TODO confuso e incongruente:
   - NFServer implements  Runnable: "Añadir métodos  a esta clase para:  [...] 2)
@@ -427,9 +607,9 @@ Ejemplo de TODO directamente incorrecto:
     lookupFilenameSubstring de la clase  FileInfo" lookupHashSubstring no existe
     en ningún sitio. Además, estas utilidades deberían estar en la base de datos
     FileDatabase,  literalmente son  queries a  la base  de datos.  Sin embargo,
-    lookupFilePath  sí que  está en  la  FileDatabase, por  qué? Es  como si  se
+    lookupFilePath  sí que  está en  la FileDatabase,  ¿por qué?  Es como  si se
     hubieran puesto los metodos de  forma aparentemente aleatoria por el codigo.
-    Nota: esta  función tampoco no sirve  un proposito porque en  el servidor se
+    Nota: esta  función tampoco sirve  a un proposito  porque en el  servidor se
     necesita el resto de campos del objeto FileInfo, no solo su path. Debería de
     haber un solo metodo  para buscar en la db por hash o  por nombre y devolver
     el FileInfo, solo  que por alguna razón divinamente  desconocida, a FileInfo
@@ -439,19 +619,19 @@ Ejemplo de TODO directamente incorrecto:
     
 
 FileDatabase es AdHoc, solo sirve como base de datos del cliente:
-  - escanea                             un                            directorio
-  - no    puede    guardar    peers    para    usarse    en    NFDirectoryServer
+  - escanea un directorio
+  - no puede guardar peers para usarse en NFDirectoryServer
 
     DirMessage  intenta representar  todos los  tipos de  mensajes, haciendo  la
 implementación terrible: encima  de que estamos en un lenguaje  OOP esto deberia
-ser     resuelto    por     herencia     para    cada     tipo    de     mensaje
+ser     resuelto    por     herencia    para     cada    tipo     de    mensaje.
 
     NFDirectoryServer termina inmediatamente al  recibir un mensaje mal formado,
-esto      es     una      vulnerabilidad      de      Denial     of      Service
+esto      es     una      vulnerabilidad     de      Denial     of      Service.
 
     NanoFiles  (cliente)  termina inmediatamente  en  cuanto  un comando  falla.
 Cuando haces  un ping y  el directorio no responde,  termina, en vez  de dejarte
-volver                                 a                                intentar
+volver                                a                                intentar.
 
     NFController.processCommand()[COM_DOWNLOAD]:  A dos  metodos aislados  se le
 pasa la  misma información inutil  (una substring  del nombre del  archivo). Sin

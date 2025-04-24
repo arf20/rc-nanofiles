@@ -28,6 +28,7 @@ El sistema está conformado por un conjunto de peers que pueden compartir archiv
 En esta sección se especifican los formatos de los mensajes usados en la comunicación Peer-Peer y Peer-Directorio. Así como el comportamiento de estos en cada momento del intercambio de información.
 
 .align left
+
 .itemize Notación
 .item asdf: static data
 .item < >: mandatory field
@@ -47,7 +48,6 @@ espacios en blanco y sobre protocolo UDP.
 
 Prueba la comunicación con el directorio y la compatibilidad del protocolo.
 
-.align left
 .itemize
 .item Operación: `ping`
 .item Campos: Identificador de protocolo.
@@ -62,7 +62,6 @@ protocol: <protocol id>
 
 Solicita información de los archivos conocidos por el directorio.
 
-.align left
 .itemize
 .item Operación: `filelist`
 .item Campos: ninguno.
@@ -80,7 +79,6 @@ Informa al directorio de la lista de archivos disponibles para descargar desde
 este cliente.
 
 
-.align left
 .itemize
 .item Operación: `publish`
 .item Campos: (ver más abajo), la lista puede estar vacía.
@@ -100,7 +98,6 @@ file: <hash2>; <filename2>; <size2>
 
 Respuesta de ping informando la compatibilidad del protocolo.
 
-.align left
 .itemize
 .item Operación: `pingok`
 .item Campos: ninguno.
@@ -114,7 +111,6 @@ operation: pingok
 
 Notifica al cliente de que usa el protocolo incorrecto.
 
-.align left
 .itemize
 .item Operación: `pingbad`
 .item Campos: ninguno.
@@ -129,7 +125,6 @@ operation: pingbad
 Devuelve una lista con información de todos los ficheros conocidos por el
 directorio (nombre, firma hash, tamaño y peers)
 
-.align left
 .itemize
 .item Operación: `filelistres`
 .item Campos: (ver más abajo), la lista puede estar vacía.
@@ -148,7 +143,6 @@ file: <hash2>; <filename2>; <size2>; <server2a>  <server2b> [...]
 
 Confirmación del mensaje publish request.
 
-.align left
 .itemize
 .item Operación: `publishack`
 .item Campos: ninguno.
@@ -171,7 +165,6 @@ Todos los mensajes comienzan con un código de operación.
 
 Consulta la disponibilidad de un archivo para ser descargado.
 
-.align left
 .itemize
 .item Código: 0x01
 .item Campos:
@@ -194,7 +187,6 @@ Consulta la disponibilidad de un archivo para ser descargado.
 
 Solicita al servidor el envío de un archivo.
 
-.align left
 .itemize
 .item Código: 0x02
 .item Campos:
@@ -216,7 +208,6 @@ Solicita al servidor el envío de un archivo.
 
 Termina la descarga actual de un fichero.
 
-.align left
 .itemize
 .item Código: 0x03
 .item Campos: ninguno.
@@ -233,7 +224,6 @@ Termina la descarga actual de un fichero.
 
 Solicita a un servidor la subida de un archivo.
 
-.align left
 .itemize
 .item Código: 0x04
 .item Campos: 
@@ -241,7 +231,7 @@ Solicita a un servidor la subida de un archivo.
 .item - Respuestas: 'accepted' o 'File already exists'.
 
 .fig
-0        1        2        3        4		  byte
+0        1        2        3        4        byte
 +--------+
 | opcode |
 +-------------------------------------------+
@@ -258,18 +248,17 @@ Da al servidor un nombre con el que guardar un archivo.
 
 Este mensaje es enviado solo si el mensaje upload request fue aceptado previamente.
 
-.align left
 .itemize
 .item Código: 0x05
 .item Campos: 
 .item - length[4]: lenght of name in bytes
 .item - name[length]
-.item - Respuestas: 'accepted' o 'file not found error'
+.item Respuestas: 'accepted' o 'file not found error'
 
 .fig
-0        1        2        3        4		  byte
+0        1        2        3        4        byte
 +--------+----------------------------------+
-| opcode | lenght                           | 
+| opcode | length                           | 
 +-------------------------------------------+
 | name                                      |
 |                                           |
@@ -278,13 +267,14 @@ Este mensaje es enviado solo si el mensaje upload request fue aceptado previamen
 +-------------------------------------------+
 .!fig
 
+.pagebreak
+
 .subsection Mensajes de servidor
 
 .subsubsection Accepted
 
 Informa de la disponibilidad de un fichero para ser descargado vía chunk requests.
 
-.align left
 .itemize
 .item Código: 0x11
 .item Campos: ninguno.
@@ -301,7 +291,6 @@ Informa de la disponibilidad de un fichero para ser descargado vía chunk reques
 
 Fichero no disponible o no encontrado.
 
-.align left
 .itemize
 .item Código: 0x12
 .item Campos: ninguno.
@@ -318,7 +307,6 @@ Fichero no disponible o no encontrado.
 
 Chunk de datos del fichero.
 
-.align left
 .itemize
 .item Código: 0x13
 .item Campos:
@@ -335,18 +323,14 @@ Chunk de datos del fichero.
 |
 .!fig
 
-.pagebreak
-
 .subsubsection Bad chunk request error
 
 Fichero no disponible o no encontrado.
 
-.align left
 .itemize
 .item Código: 0x14
 .item Campos: ninguno.
 .item Respuesta a: chunk request
-.align justify
 
 .fig
 0               
@@ -355,11 +339,12 @@ Fichero no disponible o no encontrado.
 +--------+
 .!fig
 
+.pagebreak
+
 .subsubsection File already exists
 
 El fichero ya existe en este peer.
 
-.align left
 .itemize
 .item Código: 0x15
 .item Campos: ninguno
@@ -380,7 +365,7 @@ El se mejoró el comportamiento del comando quit para que al ejecutarse se actua
 
 .section Serve con puerto efimero
 
-Originalmente el comando serve montaba un servidor escuchando en el puerto 1000. Con esta mejora el servidor queda escuchando en un puerto aleatorio que se registra en el directorio.
+Originalmente el comando serve montaba un servidor escuchando en el puerto 10000. Con esta mejora el servidor queda escuchando en un puerto aleatorio que se registra en el directorio.
 
 .section Filelist
 
@@ -392,13 +377,22 @@ Comando que permite a un servidor enviar un documento a otro servidor siempre y 
 
 .chapter Capturas de pantalla de Wireshark
 
+Véase directorio de imagenes.
+
 .chapter Conclusiones
 
-.chapter Valoracion personal
+La compartición de archivos peer-to-peer es un gran metodo para compartir archivos, es extremadamente eficiente y robusta gracias a su descentralización y división de contenido en piezas (chunks)
+(siempre y cuando hayan peers) y permite que los operadores de los directorios se desmarquen en caso de que se compartan archivos cuyo contenido sea por lo que sea, legalmente gris.
 
-.section Por qué el proyecto base de Nanofiles es malo: Un analisis
+Sin embargo, no todos los protocolos de compartición P2P son igual de buenos. En este caso se ha hecho lo que se ha podido. A continuación, una breve opinión sobre lo que se podría mejorar.
 
-.subsection Elección del lenguaje
+.pagebreak
+
+.section Valoracion personal
+
+.subsection Por qué el proyecto base de Nanofiles es perjudicial: Un analisis
+
+.subsubsection Elección del lenguaje
 
 Java era un lenguaje ampliamente usado para escribir software nuevo... hace 15 años. Ahora se considera como mala opción, como deuda tecnica (por razones fuera del alcance de este documento) no se escribe nuevo software en el, solo se mantiene el antiguo porque es mas barato que reescribirlo.
 
@@ -417,9 +411,41 @@ Esta API POSIX, tenemos unos datos, y los enviamos a una direccion, en una sola 
 .item Aparentemente no hay forma de coger un trozo de un archivo y mandarlo por un socket sin copiar el bufer, lenguaje inutilizable, ¿Como se permite esto en 2025?
 .item Java es muy inflexible en cuanto a operaciones no bloqueantes. POSIX tiene la syscall poll() para monitorear una lista de sockets en un solo thread, y Java tiene algo parecido pero crucialmente. En C puedes responder con llamadas bloqueantes sabiendo que no se van a bloquear, mientras que en Java solo puedes usar cosas no bloqueantes sobre un canal con select, lo cual es pedantico y molesto.
 
-.section Problemas con el código
+.pagebreak
 
-.subsection General
+.subsection Problemas con el protocolo pedido
+
+En respuesta a la descripción dada de los mensajes: Argumento detrás del protocolo aquí definido
+
+.subsubsection Directorio
+
+El protocolo que se describe es mas innecesariamente complicado de lo que podría ser: Es mucho mas eficiente enviar toda la información del directorio en un solo mensaje, incluyendo nombres, hashes, tamaños y peers de cada archivo, ya que en la interfaz de usuario del programa, se va a mostrar todos los ficheros disponibles y se podrán bajar cualquiera de ellos.
+
+Y como el cliente ya tiene toda la información de un golpe, no necesita enviar ningún mensaje para pedir la lista de peers; pero si aún asi quisieramos hacerlo, no debería hacerse en el protocolo mediante una subcadena de longitud variable. Esto da lugar a errores y ambigüedades que se pueden evitar usando directamente el hash SHA1 en binario que ya conoce el cliente para referirse a un archivo concreto y especifico.
+
+Aparte, opino que al ser un protocolo textual, sería infinitamente mas estandar, sencillo y escalable si este protocolo fuese JSON sobre HTTP, haciendo del directorio una API REST, parecido a bittorrent.
+
+.subsubsection Transferencia de ficheros
+
+Antes de empezar, remarcar que todo el punto de partir los archivos en piezas (chunks) es de poder obtener las piezas de distintos peers, idealmente de forma randomizada y uniforme, de manera que si un peer no tiene una pieza o falla al enviarla, no cueste demasiado pedirsela a otro peer.
+
+Con ese fin, el cliente debe tener el control granular de poder pedir piezas concretas. En este protocolo se admiten pedir pieas de distintos tamaños ya que se representa el offset y el tamaño, pero como mejora, la sesión debería fijar un tamaño, y en las comunicaciones subsecuentes indicarse indices de piezas.
+
+En el establecimiento de la sesión, al igual que al obtener los peers del directorio, es propenso a errores indicar una subcadena, otra vez. Mejor enviar el hash exacto en binario, y además asi se evita tener que tener un campo de longitud, ya que el mensaje sería de longitud fija (la longitud se infiere del tipo de mensaje). Solo habría dos respuestas posibles, hash encontrado o no, no hay lugar a la ambigüedad en este protocolo.
+
+Se menciona un mensaje del cliente con el hash del archivo, y que sección del archivo descargar mediante dos offsets. Teniendo en cuenta lo anterior, es redundante, y lo segundo se ha exmplicado anteriormente.
+
+Se podría llegar a pensar que el cliente al tener que pedir cada chunk individualmente daría lugar a un overhead de protocolo, pero esto se mitiga muy eficazmente enviando un numero de requests de piezas en el aire (en la ventana de recepción, o en el stack de aplicación del servidor), o lo que se llama pipelining de requests, de forma que el servidor las sirva lo mas rapido que pueda.
+
+También se habla de que los chunks sean de 1KiB de tamaño. Esto es absurdamente pequeño ya que simplemente el header representaría aproximadamente el 1% del trafico de chunks, nada eficiente para archivos grandes o pequeños. En bittorrent se recomiendan mensajes de 16KiB para piezas de 2MiB. Aquí se usan chunks de 2MiB directamente porque no hay concepto de bloque separado de pieza. Así el kernel trabaja más (eficiencia).
+
+Por último, no conseguimos entender la utilidad de obtener el hash del archivo pedido por el cliente al servidor tras establecer la sesión, ya que en el propio establecmimento uno de los parametros es el mismo hash. Redundante.
+
+Como mejora al protocolo se podrían introducir conceptos de control de flujo de bittorrent, como condición de choking y interest.
+
+.subsection Problemas con el código dado
+
+.subsubsection General
 
 .align left
 .itemize
@@ -433,7 +459,7 @@ Esta API POSIX, tenemos unos datos, y los enviamos a una direccion, en una sola 
 .item Enumeraciones, arrays, estructuras innecesarias, como los comandos.
 .align justify
 
-.subsection Especifico
+.subsubsection Especifico
 
 Nos dan el proyecto para Eclipse, usando el build system de eclipse. Con lo cual nos obligan a usar Eclipse. Los IDEs son un obstaculo para el aprendizaje. Tienen una cantidad de ruido visual increibles, son enormemente complicados de usar y suelen tener bugs y molestias. La alternativa es "convertirlo a gradle" y usar gradle que es otro build system terrible y innecesariamente complejo.
 
@@ -441,18 +467,17 @@ Nos dan el proyecto para Eclipse, usando el build system de eclipse. Con lo cual
 .item NFControllerP2P: "Arrancar servidor en segundo plano creando un nuevo hilo"
 .item NFServer: "Añadir métodos a esta clase para: 1) Arrancar el servidor en un hilo nuevo que se ejecutará en segundo plano". La verdadera respuesta es que hay que fijarse que NFServer implementa Runnable, con lo cual es esta clase la que hay que pasar a un Thread, y run() el metodo que ejecuta el Thread, siendo este declarado efectivamente en NFControllerP2P.
 
-.pagebreak
-
 .itemize Ejemplo de TODO confuso e incongruente:
 .item NFServer implements Runnable: "Añadir métodos a esta clase para: [...] 2) Detener el servidor (stopserver)" Como vas a parar el servidor dentro del mismo thread, si el thread está bloqueado en accept()? Si no se usan sockets no bloqueantes (no los hemos visto) la unica forma de detener el thread es terminandolo a la fuerza desde el thread Main.
 
 .itemize Ejemplo de TODO directamente incorrecto:
 .item NFServer.serveFilesToClient: "Los métodos lookupHashSubstring y lookupFilenameSubstring de la clase FileInfo" lookupHashSubstring no existe en ningún sitio. Además, estas utilidades deberían estar en la base de datos FileDatabase, literalmente son queries a la base de datos. Sin embargo, lookupFilePath sí que está en la FileDatabase, ¿por qué? Es como si se hubieran puesto los metodos de forma aparentemente aleatoria por el codigo. Nota: esta función tampoco sirve a un proposito porque en el servidor se necesita el resto de campos del objeto FileInfo, no solo su path. Debería de haber un solo metodo para buscar en la db por hash o por nombre y devolver el FileInfo, solo que por alguna razón divinamente desconocida, a FileInfo le falta el getter del path. (Nota: solo tiene sentido guardar el path entero en FileInfo, ya que el nombre es parte del path y por tanto redundante)
 
-
+.align left
 .itemize FileDatabase es AdHoc, solo sirve como base de datos del cliente:
 .item escanea un directorio
 .item no puede guardar peers para usarse en NFDirectoryServer
+.align justify
 
 DirMessage intenta representar todos los tipos de mensajes, haciendo la implementación terrible: encima de que estamos en un lenguaje OOP esto deberia ser resuelto por herencia para cada tipo de mensaje.
 
