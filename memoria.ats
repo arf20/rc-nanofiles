@@ -379,6 +379,72 @@ Comando que permite a un servidor enviar un documento a otro servidor siempre y 
 
 Véase directorio de imagenes.
 
+.indent off
+.fig Captura de tcpdump
+$ tcpdump -A -v -i lo udp port 6868
+tcpdump: listening on lo, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+20:00:25.320314 IP (tos 0x0, ttl 64, id 18336, offset 0, flags [DF], proto UDP (17), length 64)
+    localhost.42185 > localhost.6868: UDP, length 36
+E..@G.@.@..
+.............,.?operation: ping
+protocol: 20032005
+
+
+20:00:25.359745 IP (tos 0x0, ttl 64, id 18338, offset 0, flags [DF], proto UDP (17), length 47)
+    localhost.6868 > localhost.42185: UDP, length 19
+E../G.@.@...................operation: pingok
+
+
+20:00:45.575357 IP (tos 0x0, ttl 64, id 19297, offset 0, flags [DF], proto UDP (17), length 64)
+    localhost.42220 > localhost.6868: UDP, length 36
+E..@Ka@.@..I.............,.?operation: ping
+protocol: 20032005
+
+
+20:00:45.576676 IP (tos 0x0, ttl 64, id 19298, offset 0, flags [DF], proto UDP (17), length 47)
+    localhost.6868 > localhost.42220: UDP, length 19
+E../Kb@.@..Y................operation: pingok
+
+
+20:00:51.952667 IP (tos 0x0, ttl 64, id 19761, offset 0, flags [DF], proto UDP (17), length 225)
+    localhost.42185 > localhost.6868: UDP, length 197
+E...M1@.@...................operation: publish
+port: 36739
+file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976
+file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212
+
+
+20:00:51.968637 IP (tos 0x0, ttl 64, id 19765, offset 0, flags [DF], proto UDP (17), length 51)
+    localhost.6868 > localhost.42185: UDP, length 23
+E..3M5@.@..................2operation: publishack
+
+
+20:00:59.416424 IP (tos 0x0, ttl 64, id 20543, offset 0, flags [DF], proto UDP (17), length 49)
+    localhost.42220 > localhost.6868: UDP, length 21
+E..1P?@.@..z...............0operation: filelist
+
+
+20:00:59.450216 IP (tos 0x0, ttl 64, id 20546, offset 0, flags [DF], proto UDP (17), length 251)
+    localhost.6868 > localhost.42220: UDP, length 223
+E...PB@.@...................operation: filelistres
+file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:36739
+file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976; localhost:36739
+
+
+20:01:14.705968 IP (tos 0x0, ttl 64, id 21560, offset 0, flags [DF], proto UDP (17), length 49)
+    localhost.42220 > localhost.6868: UDP, length 21
+E..1T8@.@..................0operation: filelist
+
+
+20:01:14.708010 IP (tos 0x0, ttl 64, id 21561, offset 0, flags [DF], proto UDP (17), length 251)
+    localhost.6868 > localhost.42220: UDP, length 223
+E...T9@.@...................operation: filelistres
+file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:36739
+file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976; localhost:36739
+
+.!fig
+.indent on
+
 .chapter Conclusiones
 
 La compartición de archivos peer-to-peer es un gran metodo para compartir archivos, es extremadamente eficiente y robusta gracias a su descentralización y división de contenido en piezas (chunks)
@@ -386,13 +452,11 @@ La compartición de archivos peer-to-peer es un gran metodo para compartir archi
 
 Sin embargo, no todos los protocolos de compartición P2P son igual de buenos. En este caso se ha hecho lo que se ha podido. A continuación, una breve opinión sobre lo que se podría mejorar.
 
-.pagebreak
-
 .section Valoracion personal
 
-.subsection Por qué el proyecto base de Nanofiles es perjudicial: Un analisis
+Por qué el proyecto base de Nanofiles es perjudicial: Un analisis
 
-.subsubsection Elección del lenguaje
+.subsection Elección del lenguaje
 
 Java era un lenguaje ampliamente usado para escribir software nuevo... hace 15 años. Ahora se considera como mala opción, como deuda tecnica (por razones fuera del alcance de este documento) no se escribe nuevo software en el, solo se mantiene el antiguo porque es mas barato que reescribirlo.
 
@@ -410,8 +474,6 @@ Esta API POSIX, tenemos unos datos, y los enviamos a una direccion, en una sola 
 .item Java no esta diseñado para trabajar con datos binarios facilmente, teniendo que serializar y deserializar todo, y ni si quiera soporta tipos enteros sin signo explicitamente.
 .item Aparentemente no hay forma de coger un trozo de un archivo y mandarlo por un socket sin copiar el bufer, lenguaje inutilizable, ¿Como se permite esto en 2025?
 .item Java es muy inflexible en cuanto a operaciones no bloqueantes. POSIX tiene la syscall poll() para monitorear una lista de sockets en un solo thread, y Java tiene algo parecido pero crucialmente. En C puedes responder con llamadas bloqueantes sabiendo que no se van a bloquear, mientras que en Java solo puedes usar cosas no bloqueantes sobre un canal con select, lo cual es pedantico y molesto.
-
-.pagebreak
 
 .subsection Problemas con el protocolo pedido
 
