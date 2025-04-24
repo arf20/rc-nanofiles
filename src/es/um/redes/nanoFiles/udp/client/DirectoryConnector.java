@@ -133,9 +133,8 @@ public class DirectoryConnector {
 			break;
 		}
 		if (forwardings >= MAX_NUMBER_OF_ATTEMPTS) {
-			System.err.println("Directory unreachable. Closing connection.");
-			socket.close();
-			System.exit(-2);
+			System.err.println("Directory unreachable.");
+			return null;
 		}
 		String messsage = new String(responseData, 0, packetFromServer.getLength());
 		response = messsage.getBytes();
