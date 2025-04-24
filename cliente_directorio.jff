@@ -3,134 +3,156 @@
 	<automaton>
 		<!--The list of states.-->
 		<state id="0" name="q0">
-			<x>45.0</x>
-			<y>192.0</y>
+			<x>154.0</x>
+			<y>548.0</y>
 			<label>OFFLINE</label>
 			<initial/>
 		</state>
 		<state id="1" name="q1">
-			<x>455.0</x>
-			<y>198.0</y>
-			<label>ONLINE</label>
+			<x>478.0</x>
+			<y>338.0</y>
+			<label>wait_pingok</label>
 		</state>
-		<state id="2" name="q1">
-			<x>259.0</x>
-			<y>193.0</y>
-			<label>wait_ack_ping</label>
+		<state id="2" name="q2">
+			<x>403.0</x>
+			<y>489.0</y>
+			<label>wait_filelistres</label>
 		</state>
 		<state id="3" name="q3">
-			<x>255.0</x>
-			<y>46.0</y>
-			<label>retry_ping</label>
+			<x>405.0</x>
+			<y>714.0</y>
+			<label>wait_publishack</label>
 		</state>
 		<state id="4" name="q4">
-			<x>260.0</x>
-			<y>357.0</y>
+			<x>320.0</x>
+			<y>335.0</y>
+			<label>retry_ping</label>
+		</state>
+		<state id="5" name="q5">
+			<x>401.0</x>
+			<y>642.0</y>
+			<label>retry_filelist</label>
+		</state>
+		<state id="6" name="q6">
+			<x>246.0</x>
+			<y>716.0</y>
+			<label>retry_publish</label>
+		</state>
+		<state id="7" name="q7">
+			<x>599.0</x>
+			<y>526.0</y>
+			<label>ONLINE</label>
+		</state>
+		<state id="8" name="q8">
+			<x>650.0</x>
+			<y>643.0</y>
+			<label>SERVING</label>
+		</state>
+		<state id="9" name="q9">
+			<x>778.0</x>
+			<y>528.0</y>
 			<label>FINISHED</label>
 			<final/>
 		</state>
-		<state id="5" name="q5">
-			<x>455.0</x>
-			<y>41.0</y>
-			<label>wait_ack_(filelist)</label>
-		</state>
-		<state id="6" name="q6">
-			<x>643.0</x>
-			<y>44.0</y>
-			<label>retry_filelist</label>
-		</state>
-		<state id="7" name="q7">
-			<x>641.0</x>
-			<y>196.0</y>
-			<label>wait_publishAck</label>
-		</state>
-		<state id="8" name="q8">
-			<x>764.0</x>
-			<y>44.0</y>
-			<label>retry_publish</label>
-		</state>
 		<!--The list of transitions.-->
 		<transition>
-			<from>2</from>
+			<from>3</from>
+			<to>8</to>
+			<read>rcv(publishack)</read>
+		</transition>
+		<transition>
+			<from>7</from>
+			<to>9</to>
+			<read>quit_command</read>
+		</transition>
+		<transition>
+			<from>7</from>
 			<to>1</to>
-			<read>rcv(pingOk)</read>
-		</transition>
-		<transition>
-			<from>2</from>
-			<to>0</to>
-			<read>timeout_n</read>
-		</transition>
-		<transition>
-			<from>8</from>
-			<to>7</to>
-			<read>snd(publish)</read>
-		</transition>
-		<transition>
-			<from>2</from>
-			<to>3</to>
-			<read>timeout</read>
-		</transition>
-		<transition>
-			<from>1</from>
-			<to>5</to>
-			<controlx>436</controlx>
-			<controly>121</controly>
-			<read>snd(filelist)</read>
-		</transition>
-		<transition>
-			<from>2</from>
-			<to>0</to>
-			<read>rcv(pingBad)</read>
+			<read>snd(ping)</read>
 		</transition>
 		<transition>
 			<from>0</from>
 			<to>2</to>
-			<read>snd(ping)</read>
-		</transition>
-		<transition>
-			<from>7</from>
-			<to>8</to>
-			<read>timeout</read>
-		</transition>
-		<transition>
-			<from>5</from>
-			<to>6</to>
-			<read>timeout</read>
-		</transition>
-		<transition>
-			<from>6</from>
-			<to>5</to>
 			<read>snd(filelist)</read>
 		</transition>
 		<transition>
 			<from>3</from>
+			<to>6</to>
+			<read>timeout</read>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>0</to>
+			<read>rcv(pingbad)</read>
+		</transition>
+		<transition>
+			<from>7</from>
+			<to>3</to>
+			<read>snd(publish)</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>7</to>
+			<read>rcv(filelistres)</read>
+		</transition>
+		<transition>
+			<from>1</from>
+			<to>4</to>
+			<read>timeout</read>
+		</transition>
+		<transition>
+			<from>5</from>
 			<to>2</to>
-			<read>snd(ping)</read>
+			<read>snd(filelist)</read>
 		</transition>
 		<transition>
 			<from>1</from>
 			<to>7</to>
-			<read>snd(publish)</read>
+			<controlx>554</controlx>
+			<controly>433</controly>
+			<read>rcv(pingok)</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>5</to>
+			<read>timeout</read>
 		</transition>
 		<transition>
 			<from>0</from>
-			<to>4</to>
+			<to>9</to>
+			<controlx>387</controlx>
+			<controly>-21</controly>
 			<read>quit_command</read>
+		</transition>
+		<transition>
+			<from>4</from>
+			<to>1</to>
+			<read>snd(ping)</read>
 		</transition>
 		<transition>
 			<from>7</from>
-			<to>1</to>
-			<read>rcv(publishAck)</read>
+			<to>2</to>
+			<read>snd(filelist)</read>
 		</transition>
 		<transition>
-			<from>5</from>
+			<from>0</from>
 			<to>1</to>
-			<read>rcv(filelistRes)</read>
+			<read>snd(ping)</read>
 		</transition>
 		<transition>
-			<from>1</from>
-			<to>4</to>
+			<from>8</from>
+			<to>9</to>
 			<read>quit_command</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>3</to>
+			<read>snd(publish)</read>
+		</transition>
+		<transition>
+			<from>6</from>
+			<to>3</to>
+			<read>snd(publish)</read>
 		</transition>
 	</automaton>
 </structure>

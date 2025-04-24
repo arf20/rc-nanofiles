@@ -3,13 +3,13 @@
 	<automaton>
 		<!--The list of states.-->
 		<state id="0" name="q2">
-			<x>370.0</x>
-			<y>106.0</y>
+			<x>411.0</x>
+			<y>-61.0</y>
 			<label>DOWNLOADING</label>
 		</state>
 		<state id="1" name="q4">
-			<x>168.0</x>
-			<y>241.0</y>
+			<x>57.0</x>
+			<y>287.0</y>
 			<label>FINISHED</label>
 			<final/>
 		</state>
@@ -20,8 +20,8 @@
 			<initial/>
 		</state>
 		<state id="3" name="q3">
-			<x>598.0</x>
-			<y>102.0</y>
+			<x>601.0</x>
+			<y>72.0</y>
 			<label>wait_chunk</label>
 		</state>
 		<state id="4" name="q1">
@@ -30,30 +30,30 @@
 			<label>wait_accepted</label>
 		</state>
 		<state id="5" name="q5">
-			<x>367.0</x>
-			<y>210.0</y>
-			<label>download_failed</label>
+			<x>264.0</x>
+			<y>247.0</y>
+			<label>wait_accepted</label>
+		</state>
+		<state id="6" name="q6">
+			<x>422.0</x>
+			<y>248.0</y>
+			<label>startUpload</label>
+		</state>
+		<state id="7" name="q7">
+			<x>648.0</x>
+			<y>160.0</y>
+			<label>wait_accepted</label>
+		</state>
+		<state id="8" name="q8">
+			<x>655.0</x>
+			<y>267.0</y>
+			<label>UPLOADING</label>
 		</state>
 		<!--The list of transitions.-->
-		<transition>
-			<from>5</from>
-			<to>2</to>
-			<read>snd(stopDownload)</read>
-		</transition>
 		<transition>
 			<from>0</from>
 			<to>3</to>
 			<read>snd(chunkRequest)</read>
-		</transition>
-		<transition>
-			<from>3</from>
-			<to>0</to>
-			<read>rcv(chunk)</read>
-		</transition>
-		<transition>
-			<from>3</from>
-			<to>5</to>
-			<read>rcv(badChunkRequestError)</read>
 		</transition>
 		<transition>
 			<from>2</from>
@@ -61,9 +61,14 @@
 			<read>snd(fileRequest)</read>
 		</transition>
 		<transition>
+			<from>5</from>
+			<to>6</to>
+			<read>rcv(accepted)</read>
+		</transition>
+		<transition>
 			<from>4</from>
 			<to>2</to>
-			<read>rcv(badChunkRequestError)</read>
+			<read>rcv(badFileRequestError)</read>
 		</transition>
 		<transition>
 			<from>2</from>
@@ -71,16 +76,65 @@
 			<read>quit_command</read>
 		</transition>
 		<transition>
+			<from>3</from>
+			<to>2</to>
+			<controlx>291</controlx>
+			<controly>58</controly>
+			<read>rcv(badChunkRequestError)</read>
+		</transition>
+		<transition>
+			<from>7</from>
+			<to>6</to>
+			<read>rcv(accepted</read>
+		</transition>
+		<transition>
+			<from>8</from>
+			<to>8</to>
+			<read>snd(chunk)</read>
+		</transition>
+		<transition>
+			<from>3</from>
+			<to>0</to>
+			<read>rcv(chunk)</read>
+		</transition>
+		<transition>
+			<from>6</from>
+			<to>8</to>
+			<read>snd(chunk)</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>5</to>
+			<read>snd(publishRequest)</read>
+		</transition>
+		<transition>
+			<from>6</from>
+			<to>7</to>
+			<read>snd(fileNameToSave)</read>
+		</transition>
+		<transition>
 			<from>4</from>
 			<to>0</to>
 			<read>rcv(accepted)</read>
 		</transition>
 		<transition>
-			<from>0</from>
+			<from>8</from>
 			<to>2</to>
-			<controlx>209</controlx>
-			<controly>112</controly>
+			<controlx>211</controlx>
+			<controly>464</controly>
 			<read>snd(stopDownload)</read>
+		</transition>
+		<transition>
+			<from>5</from>
+			<to>2</to>
+			<read>rcv(fileAlreadyExists)</read>
+		</transition>
+		<transition>
+			<from>7</from>
+			<to>2</to>
+			<controlx>390</controlx>
+			<controly>117</controly>
+			<read>rcv(badFileRequestError)</read>
 		</transition>
 	</automaton>
 </structure>
