@@ -232,12 +232,12 @@ TCP.
   - - Size[4]: tamaño del chunk.
   - Respuestas: chunk o bad chunk request error
 
-    0        1       2       3       4       5       6       7       8         byte
-    +--------+----------------------------------------------------------------+
-    | opcode | offset                                                         |
-    +--------+----------------------+-----------------------------------------+
-    | size                          |
-    +-------------------------------+
+    0        1       2      3      4      5      6      7      8        byte
+    +--------+--------------------------------------------------------+
+    | opcode | offset                                                 |
+    +--------+---------------------+----------------------------------+
+    | size                         |
+    +------------------------------+
 
 2.2.1.3. Stop download
 
@@ -436,63 +436,79 @@ pueda tratar el comando upload.
 MEMORIA RC                         NanoFiles                              PAGE 9
 
 $ tcpdump -A -v -i lo udp port 6868
-tcpdump: listening on lo, link-type EN10MB (Ethernet), snapshot length 262144 bytes
-20:00:25.320314 IP (tos 0x0, ttl 64, id 18336, offset 0, flags [DF], proto UDP (17), length 64)
+tcpdump: listening on lo, link-type EN10MB (Ethernet), snapshot length 262144 by
+tes
+20:00:25.320314 IP (tos 0x0, ttl 64, id 18336, offset 0, flags [DF], proto UDP (
+17), length 64)
     localhost.42185 > localhost.6868: UDP, length 36
 E..@G.@.@..
 .............,.?operation: ping
 protocol: 20032005
 
 
-20:00:25.359745 IP (tos 0x0, ttl 64, id 18338, offset 0, flags [DF], proto UDP (17), length 47)
+20:00:25.359745 IP (tos 0x0, ttl 64, id 18338, offset 0, flags [DF], proto UDP (
+17), length 47)
     localhost.6868 > localhost.42185: UDP, length 19
 E../G.@.@...................operation: pingok
-20:00:45.575357 IP (tos 0x0, ttl 64, id 19297, offset 0, flags [DF], proto UDP (17), length 64)
+20:00:45.575357 IP (tos 0x0, ttl 64, id 19297, offset 0, flags [DF], proto UDP (
+17), length 64)
     localhost.42220 > localhost.6868: UDP, length 36
 E..@Ka@.@..I.............,.?operation: ping
 protocol: 20032005
 
 
-20:00:45.576676 IP (tos 0x0, ttl 64, id 19298, offset 0, flags [DF], proto UDP (17), length 47)
+20:00:45.576676 IP (tos 0x0, ttl 64, id 19298, offset 0, flags [DF], proto UDP (
+17), length 47)
     localhost.6868 > localhost.42220: UDP, length 19
 E../Kb@.@..Y................operation: pingok
 
 
-20:00:51.952667 IP (tos 0x0, ttl 64, id 19761, offset 0, flags [DF], proto UDP (17), length 225)
+20:00:51.952667 IP (tos 0x0, ttl 64, id 19761, offset 0, flags [DF], proto UDP (
+17), length 225)
     localhost.42185 > localhost.6868: UDP, length 197
 E...M1@.@...................operation: publish
 port: 36739
-file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976
+file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1
+.iso; 1173886976
 file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212
 
-20:00:51.968637 IP (tos 0x0, ttl 64, id 19765, offset 0, flags [DF], proto UDP (17), length 51)
+20:00:51.968637 IP (tos 0x0, ttl 64, id 19765, offset 0, flags [DF], proto UDP (
+17), length 51)
     localhost.6868 > localhost.42185: UDP, length 23
 E..3M5@.@..................2operation: publishack
 
 
-20:00:59.416424 IP (tos 0x0, ttl 64, id 20543, offset 0, flags [DF], proto UDP (17), length 49)
+20:00:59.416424 IP (tos 0x0, ttl 64, id 20543, offset 0, flags [DF], proto UDP (
+17), length 49)
     localhost.42220 > localhost.6868: UDP, length 21
 E..1P?@.@..z...............0operation: filelist
 
 
-20:00:59.450216 IP (tos 0x0, ttl 64, id 20546, offset 0, flags [DF], proto UDP (17), length 251)
+20:00:59.450216 IP (tos 0x0, ttl 64, id 20546, offset 0, flags [DF], proto UDP (
+17), length 251)
     localhost.6868 > localhost.42220: UDP, length 223
 E...PB@.@...................operation: filelistres
-file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:36739
-file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976; localhost:36739
+file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:3
+6739
+file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1
+.iso; 1173886976; localhost:36739
 
 MEMORIA RC                         NanoFiles                             PAGE 10
 
-20:01:14.705968 IP (tos 0x0, ttl 64, id 21560, offset 0, flags [DF], proto UDP (17), length 49)
+20:01:14.705968 IP (tos 0x0, ttl 64, id 21560, offset 0, flags [DF], proto UDP (
+17), length 49)
     localhost.42220 > localhost.6868: UDP, length 21
 E..1T8@.@..................0operation: filelist
 
 
-20:01:14.708010 IP (tos 0x0, ttl 64, id 21561, offset 0, flags [DF], proto UDP (17), length 251)
+20:01:14.708010 IP (tos 0x0, ttl 64, id 21561, offset 0, flags [DF], proto UDP (
+17), length 251)
     localhost.6868 > localhost.42220: UDP, length 223
 E...T9@.@...................operation: filelistres
-file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:36739
-file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976; localhost:36739
+file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:3
+6739
+file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1
+.iso; 1173886976; localhost:36739
 
 Fig 1. Captura de tcpdump
 
