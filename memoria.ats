@@ -4,7 +4,7 @@
 .indent on
 .header "MEMORIA RC" "NanoFiles" pagenumext
 
-.margin 1 0 1 0
+.margin 1 0 0 0
 .align justify
 
 .title MEMORIA REDES DE COMPUTADORES - Nanofiles
@@ -71,8 +71,6 @@ Solicita información de los archivos conocidos por el directorio.
 operation: filelist
 .!fig
 
-.pagebreak
-
 .subsubsection Publish request
 
 Informa al directorio de la lista de archivos disponibles para descargar desde
@@ -136,8 +134,6 @@ file: <hash1>; <filename1>; <size1>; <server1a>, <server1b> [...]
 file: <hash2>; <filename2>; <size2>; <server2a>  <server2b> [...]
 [...]
 .!fig
-
-.pagebreak
 
 .subsubsection Publish reply
 
@@ -267,8 +263,6 @@ Este mensaje es enviado solo si el mensaje upload request fue aceptado previamen
 +-------------------------------------------+
 .!fig
 
-.pagebreak
-
 .subsection Mensajes de servidor
 
 .subsubsection Accepted
@@ -339,8 +333,6 @@ Fichero no disponible o no encontrado.
 +--------+
 .!fig
 
-.pagebreak
-
 .subsubsection File already exists
 
 El fichero ya existe en este peer.
@@ -393,8 +385,10 @@ Para su funcionamiento se modificó el método serveFilesToClient para que pueda
 
 Véase directorio de imagenes.
 
+Aquí incluido una captura de tcpdump.
+
 .indent off
-.fig Captura de tcpdump
+.fig 
 $ tcpdump -A -v -i lo udp port 6868
 tcpdump: listening on lo, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 20:00:25.320314 IP (tos 0x0, ttl 64, id 18336, offset 0, flags [DF], proto UDP (17), length 64)
@@ -407,8 +401,6 @@ protocol: 20032005
 20:00:25.359745 IP (tos 0x0, ttl 64, id 18338, offset 0, flags [DF], proto UDP (17), length 47)
     localhost.6868 > localhost.42185: UDP, length 19
 E../G.@.@...................operation: pingok
-
-
 20:00:45.575357 IP (tos 0x0, ttl 64, id 19297, offset 0, flags [DF], proto UDP (17), length 64)
     localhost.42220 > localhost.6868: UDP, length 36
 E..@Ka@.@..I.............,.?operation: ping
@@ -427,7 +419,6 @@ port: 36739
 file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976
 file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212
 
-
 20:00:51.968637 IP (tos 0x0, ttl 64, id 19765, offset 0, flags [DF], proto UDP (17), length 51)
     localhost.6868 > localhost.42185: UDP, length 23
 E..3M5@.@..................2operation: publishack
@@ -443,8 +434,9 @@ E..1P?@.@..z...............0operation: filelist
 E...PB@.@...................operation: filelistres
 file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:36739
 file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976; localhost:36739
-
-
+.!fig
+.pagebreak
+.fig Captura de tcpdump
 20:01:14.705968 IP (tos 0x0, ttl 64, id 21560, offset 0, flags [DF], proto UDP (17), length 49)
     localhost.42220 > localhost.6868: UDP, length 21
 E..1T8@.@..................0operation: filelist
@@ -457,7 +449,9 @@ file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:3
 file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1.iso; 1173886976; localhost:36739
 
 .!fig
+
 .indent on
+.align justify
 
 .chapter Conclusiones
 
@@ -479,6 +473,8 @@ Especificamente, Java es una opción terrible para este caso porque es un obstac
 Java, siendo OOP puro, está sujeto a limitaciones que le impiden representar fielmente como funcionan las cosas. La API tiene una serie de clases para representar datagramas UDP por ejemplo: los datagramas existen, pero la clase DatagramPacket es algo muy abstracto que en ningún momento representa el paquete real, sino juntar datos en una unidad porque sí. Java no sabe lo que es un datagrama realmente.
 
 Que queremos enviar un cacho de datos a varias direcciones: tenemos que construir un DatagramPacket para cada vez, con los mismos datos, pero con una dirección de destino distinta. Java está lleno de estas construcciones, copias copias y copias y destrucciones completamente innecesarias.
+
+.pagebreak
 
 Cada día nos alejamos mas de C: La API de sockets de Java está demasiado alejada de la verdad: la API de sockets POSIX. Esa que todos los sitemas operativos reales implementan de una forma u otra desde BSD 4.2 (incluso Windows), que es lo que la JVM realmente usa por debajo para hablar con la red.
 
@@ -518,6 +514,18 @@ También se habla de que los chunks sean de 1KiB de tamaño. Esto es absurdament
 Por último, no conseguimos entender la utilidad de obtener el hash del archivo pedido por el cliente al servidor tras establecer la sesión, ya que en el propio establecmimento uno de los parametros es el mismo hash. Redundante.
 
 Como mejora al protocolo se podrían introducir conceptos de control de flujo de bittorrent, como condición de choking y interest.
+
+.subsubsection Conclusión sobre el protocolo
+
+Como el punto 12 de RFC 1925:
+
+.fig
+   (12) In protocol design, perfection has been reached not when there
+        is nothing left to add, but when there is nothing left to take
+        away.
+.!fig
+
+.pagebreak
 
 .subsection Problemas con el código dado
 
