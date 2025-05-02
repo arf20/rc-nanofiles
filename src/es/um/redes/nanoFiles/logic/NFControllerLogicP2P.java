@@ -35,7 +35,7 @@ public class NFControllerLogicP2P {
 	private NFServer fileServer = null;
 	private Thread serverThread = null;
 
-	public final int CHUNK_SIZE = 2097152; // 2MiB
+	public static final int CHUNK_SIZE = 2097152; // 2MiB
 	
 	protected NFControllerLogicP2P() {
 		
@@ -215,40 +215,24 @@ public class NFControllerLogicP2P {
 		
 		System.out.println("Downloading " + chunks + " chunks from " + connectors.size() + " peers");
 		
-		for (int chunk = 0; chunk < chunks;) {
-			// usar clientes diferentes para cada chunk, rotandose
-			NFConnector conn = connectors.get(chunk % connectors.size());
-			
-			PeerMessage chunkreqMessage = new PeerMessage(PeerMessageOps.OPCODE_CHUNKREQUEST,
-				(long)chunk * CHUNK_SIZE, chunk == chunks - 1 ? (int)(targetFileInfo.getSize() % (long)CHUNK_SIZE) : CHUNK_SIZE);
-			
-			try {
-				conn.sendMessage(chunkreqMessage);
-				responseMessage = conn.receiveMessage();
-			} catch (IOException e) {
-				System.out.println("Client died: " + conn);
-				connectors.remove(conn);
-				continue;
-			}
-			
-			if (responseMessage.getOpcode() != PeerMessageOps.OPCODE_CHUNK) {
-				System.out.println("Peer had an error or bad offset");
-				connectors.remove(conn);
-				continue;
-			}
-			
-			try {
-				file.seek(responseMessage.getOffset());
-				file.write(responseMessage.getChunkData());
-			} catch (IOException e) {
-				System.out.println("Out of space");
-				return false;
-			}
-		
-			chunk++;
-			chunkCounter.put(conn, chunkCounter.get(conn) + 1);
+		ThreadMonitor monitor = new ThreadMonitor(chunkCounter, file, targetFileInfo.getSize());
+		DownloaderThread[] downloader = new DownloaderThread[connectors.size()];
+		for(int i=0; i < connectors.size(); i++) {
+			downloader[i] = new DownloaderThread(connectors.get(i), monitor);
 		}
 		
+		for(var thread : downloader) {
+			thread.start();
+		}
+		
+		for(var thread : downloader) {
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+				
 		try {
 			file.close();
 		} catch (IOException e) {

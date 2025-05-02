@@ -175,6 +175,7 @@ public class NFController {
 			 * solicite al directorio darnos de baja como servidor de ficheros (método
 			 * unregisterFileServer).
 			 */
+			commandSucceeded = true;
 			if (controllerPeer.serving()) {
 				controllerPeer.stopFileServer();
 				commandSucceeded = controllerDir.unregisterFileServer(controllerPeer.getServerPort());
