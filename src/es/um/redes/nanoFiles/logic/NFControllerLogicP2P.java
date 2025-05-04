@@ -1,21 +1,14 @@
 package es.um.redes.nanoFiles.logic;
 
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.HashMap;
-import java.io.DataInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import es.um.redes.nanoFiles.tcp.client.DownloaderThread;
 import es.um.redes.nanoFiles.tcp.client.NFConnector;
 import es.um.redes.nanoFiles.tcp.message.PeerMessage;
 import es.um.redes.nanoFiles.tcp.message.PeerMessageOps;

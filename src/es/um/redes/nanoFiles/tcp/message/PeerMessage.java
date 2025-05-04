@@ -2,17 +2,8 @@ package es.um.redes.nanoFiles.tcp.message;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.StructureViolationException;
-
-import es.um.redes.nanoFiles.util.FileInfo;
 
 public class PeerMessage {
 	private byte opcode;

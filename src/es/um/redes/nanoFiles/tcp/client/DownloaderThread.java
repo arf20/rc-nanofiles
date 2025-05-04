@@ -1,8 +1,8 @@
-package es.um.redes.nanoFiles.logic;
+package es.um.redes.nanoFiles.tcp.client;
 
 import java.io.IOException;
 
-import es.um.redes.nanoFiles.tcp.client.NFConnector;
+import es.um.redes.nanoFiles.logic.ThreadMonitor;
 import es.um.redes.nanoFiles.tcp.message.PeerMessage;
 import es.um.redes.nanoFiles.tcp.message.PeerMessageOps;
 

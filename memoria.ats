@@ -181,7 +181,7 @@ Consulta la disponibilidad de un archivo para ser descargado.
 
 .subsubsection Chunk request
 
-Solicita al servidor el envío de un archivo.
+Solicita al servidor el envío de un chunk de fichero.
 
 .itemize
 .item Código: 0x02
@@ -380,6 +380,10 @@ Esto se puede gracias a que con la información de filelist se crean objetos Ext
 Comando que permite a un servidor enviar un documento a otro servidor siempre y cuando este último no lo tenga ya. Para poder ejecutar este comando el peer debe darse de alta como servidor en el directorio previamente.
 
 Para su funcionamiento se modificó el método serveFilesToClient para que pueda tratar el comando upload.
+
+.section Descarga Paralela
+
+Para descargar chunks desde varios peers de forma paralela, usamos la técnica de usar varios hilos clientes (un hilo por peer servidor del mismo fichero) coordinados por un monitor. Se implementaron las clases DownloaderThread y ThreadMonitor para este fin.
 
 .chapter Capturas de pantalla de Wireshark
 

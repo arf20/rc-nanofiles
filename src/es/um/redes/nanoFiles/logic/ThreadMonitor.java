@@ -32,7 +32,7 @@ public class ThreadMonitor {
 
 	}
 	
-	synchronized PeerMessage getChunk() {
+	synchronized public PeerMessage getChunk() {
 		if (currentChunk == totalChunks) {
 			return new PeerMessage(PeerMessageOps.OPCODE_STOP);
 		}
@@ -43,7 +43,7 @@ public class ThreadMonitor {
 		return msg;			
 	}
 	
-	synchronized boolean pushChunk(NFConnector thread, PeerMessage chunk) {
+	synchronized public boolean pushChunk(NFConnector thread, PeerMessage chunk) {
 		while(chunk.getOffset() != nextOffset) {
 			try {
 				wait();

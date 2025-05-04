@@ -1,8 +1,6 @@
 package es.um.redes.nanoFiles.logic;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-
 import es.um.redes.nanoFiles.application.NanoFiles;
 import es.um.redes.nanoFiles.udp.client.DirectoryConnector;
 import es.um.redes.nanoFiles.util.ExternFile;
