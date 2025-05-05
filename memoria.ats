@@ -440,8 +440,9 @@ E..3M5@.@..................2operation: publishack
 17), length 49)
     localhost.42220 > localhost.6868: UDP, length 21
 E..1P?@.@..z...............0operation: filelist
-
-
+.!fig
+.pagebreak
+.fig Captura de tcpdump
 20:00:59.450216 IP (tos 0x0, ttl 64, id 20546, offset 0, flags [DF], proto UDP (
 17), length 251)
     localhost.6868 > localhost.42220: UDP, length 223
@@ -450,9 +451,8 @@ file: f24656bbedcc2a584fee3b405e19e935f7c171a3; ihatejava.txt; 1212; localhost:3
 6739
 file: a3f6200e5178f9c4591735e878c8716b46a90a47; FreeBSD-14.1-RELEASE-amd64-disc1
 .iso; 1173886976; localhost:36739
-.!fig
-.pagebreak
-.fig Captura de tcpdump
+
+
 20:01:14.705968 IP (tos 0x0, ttl 64, id 21560, offset 0, flags [DF], proto UDP (
 17), length 49)
     localhost.42220 > localhost.6868: UDP, length 21
